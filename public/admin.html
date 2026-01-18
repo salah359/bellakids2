@@ -21,9 +21,7 @@
         .product-img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; }
         .navbar { background: #2d3436; }
         .preview-thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; }
-        
-        /* Fix Table alignment in RTL */
-        th, td { text-align: right; }
+        th, td { text-align: right; vertical-align: middle; }
     </style>
 </head>
 <body>
@@ -59,13 +57,13 @@
                             <th class="pe-4">الصورة</th>
                             <th>الاسم</th>
                             <th>السعر</th>
+                            <th>السعر القديم</th>
                             <th>القسم</th>
                             <th>الحالة</th>
                             <th class="text-end ps-4">إجراءات</th>
                         </tr>
                     </thead>
-                    <tbody id="inventoryList">
-                        </tbody>
+                    <tbody id="inventoryList"></tbody>
                 </table>
             </div>
         </div>
@@ -81,30 +79,35 @@
                     </div>
                     
                     <div class="modal-body p-4">
-                        <div class="row g-3">
+                        <input type="hidden" id="editId" name="id"> <div class="row g-3">
+                            <input type="hidden" name="name_en" id="name_en">
                             
-                            <input type="hidden" name="name_en" value="">
-
                             <div class="col-md-12">
                                 <label class="form-label small fw-bold text-success">الاسم (عربي)</label>
-                                <input type="text" name="name_ar" class="form-control rounded-3" placeholder="مثلاً: فستان صيفي" required>
+                                <input type="text" name="name_ar" id="name_ar" class="form-control rounded-3" required>
                             </div>
 
-                            <div class="col-md-4">
-                                <label class="form-label small fw-bold">السعر (₪)</label>
-                                <input type="number" step="0.01" name="price" class="form-control rounded-3" required>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">السعر الحالي (₪)</label>
+                                <input type="number" step="0.01" name="price" id="price" class="form-control rounded-3" required>
                             </div>
-                            <div class="col-md-4">
+                            
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-danger">السعر القديم (للعروض)</label>
+                                <input type="number" step="0.01" name="oldPrice" id="oldPrice" class="form-control rounded-3" placeholder="اختياري">
+                            </div>
+
+                            <div class="col-md-6">
                                 <label class="form-label small fw-bold">القسم</label>
-                                <select name="category" class="form-select rounded-3">
+                                <select name="category" id="category" class="form-select rounded-3">
                                     <option value="boys">أولاد</option>
                                     <option value="girls">بنات</option>
                                     <option value="newborn">مواليد</option>
                                 </select>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label class="form-label small fw-bold">حالة التوفر</label>
-                                <select name="inStock" class="form-select rounded-3">
+                                <select name="inStock" id="inStock" class="form-select rounded-3">
                                     <option value="true">✅ متوفر</option>
                                     <option value="false">❌ نفد الكمية</option>
                                 </select>
@@ -112,30 +115,29 @@
 
                             <div class="col-12">
                                 <label class="form-label small fw-bold">المقاسات (افصل بينها بفاصلة)</label>
-                                <input type="text" name="sizes" class="form-control rounded-3" placeholder="مثلاً: 2Y, 3Y, 4Y, S, M" dir="ltr" required>
+                                <input type="text" name="sizes" id="sizes" class="form-control rounded-3" placeholder="2Y, 3Y, S, M" dir="ltr" required>
                             </div>
 
-                            <textarea name="description_en" class="d-none"></textarea>
+                            <textarea name="description_en" id="description_en" class="d-none"></textarea>
 
                             <div class="col-md-12">
                                 <label class="form-label small fw-bold text-muted">الوصف (عربي)</label>
-                                <textarea name="description_ar" class="form-control rounded-3" rows="3"></textarea>
+                                <textarea name="description_ar" id="description_ar" class="form-control rounded-3" rows="3"></textarea>
                             </div>
 
                             <div class="col-12">
                                 <div class="p-3 bg-light rounded-3 border dashed-border">
-                                    <label class="form-label small fw-bold d-block">📸 رفع الصور (حد أقصى 5)</label>
+                                    <label class="form-label small fw-bold d-block">📸 رفع الصور (اترك فارغاً عند التعديل للاحتفاظ بالصور القديمة)</label>
                                     <input type="file" name="images" id="imageFiles" class="form-control" multiple accept="image/*">
                                     <div id="previewContainer" class="d-flex gap-2 mt-3 flex-wrap"></div>
                                 </div>
                             </div>
-
                         </div>
                     </div>
 
                     <div class="modal-footer bg-light border-0">
                         <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">إلغاء</button>
-                        <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold" id="saveBtn">حفظ المنتج</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold" id="saveBtn">حفظ</button>
                     </div>
                 </form>
             </div>
@@ -148,10 +150,8 @@
         const API_URL = '/api/products';
         const modal = new bootstrap.Modal(document.getElementById('productModal'));
         const ADMIN_TOKEN = localStorage.getItem('adminToken');
-        
         let allProducts = [];
 
-        // 1. Initial Load
         fetchInventory();
 
         function handleLogout() {
@@ -159,127 +159,122 @@
             window.location.href = 'admin-login.html';
         }
 
-        // 2. Fetch Data
         async function fetchInventory() {
             try {
                 const res = await fetch(API_URL);
-                if (!res.ok) throw new Error('Failed to fetch');
                 allProducts = await res.json();
                 renderInventory(allProducts);
             } catch (err) {
-                console.error(err);
-                document.getElementById('inventoryList').innerHTML = 
-                    `<tr><td colspan="6" class="text-center text-danger py-4">❌ خطأ في الاتصال بالخادم</td></tr>`;
+                document.getElementById('inventoryList').innerHTML = `<tr><td colspan="7" class="text-center text-danger">خطأ في الاتصال</td></tr>`;
             }
         }
 
-        // 3. Render Table
         function renderInventory(products) {
             const tbody = document.getElementById('inventoryList');
             if(products.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted"><h4>📭 القائمة فارغة</h4><p>اضغط على <b>+ إضافة منتج جديد</b> للبدء!</p></td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5">القائمة فارغة</td></tr>`;
                 return;
             }
 
-            const categoryMap = {
-                'boys': 'أولاد',
-                'girls': 'بنات',
-                'newborn': 'مواليد',
-                'all': 'الكل'
-            };
+            const categoryMap = { 'boys': 'أولاد', 'girls': 'بنات', 'newborn': 'مواليد', 'all': 'الكل' };
 
             tbody.innerHTML = products.map(p => {
-                let imgPath = 'assets/images/placeholder.png';
-                if(p.images && p.images.length > 0) {
-                    imgPath = p.images[0].startsWith('http') ? p.images[0] : `/uploads/${p.images[0]}`;
-                }
+                let imgPath = p.images && p.images.length > 0 ? (p.images[0].startsWith('http') ? p.images[0] : `/uploads/${p.images[0]}`) : 'assets/images/placeholder.png';
 
-                const stockBadge = p.inStock 
-                    ? '<span class="badge bg-success bg-opacity-75">متوفر</span>' 
-                    : '<span class="badge bg-danger bg-opacity-75">نفد الكمية</span>';
+                // Stock Toggle Button
+                const stockBtn = p.inStock 
+                    ? `<button onclick="toggleStock('${p._id}')" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm">✅ متوفر</button>`
+                    : `<button onclick="toggleStock('${p._id}')" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm">❌ نفد</button>`;
 
-                const catName = categoryMap[p.category] || p.category;
+                const oldPriceDisplay = p.oldPrice ? `<del class="text-muted small">₪${p.oldPrice}</del>` : '-';
 
                 return `
                 <tr>
                     <td class="pe-4"><img src="${imgPath}" class="product-img shadow-sm"></td>
-                    <td>
-                        <div class="fw-bold text-dark">${p.name_ar || '-'}</div>
-                    </td>
+                    <td><div class="fw-bold text-dark">${p.name_ar || '-'}</div></td>
                     <td class="fw-bold text-primary">₪${p.price}</td>
-                    <td><span class="badge bg-light text-dark border">${catName}</span></td>
-                    <td>${stockBadge}</td>
+                    <td>${oldPriceDisplay}</td>
+                    <td><span class="badge bg-light text-dark border">${categoryMap[p.category] || p.category}</span></td>
+                    <td>${stockBtn}</td>
                     <td class="text-end ps-4">
+                        <button onclick="openEditModal('${p._id}')" class="btn btn-sm btn-primary px-3 rounded-pill me-1">تعديل</button>
                         <button onclick="deleteProduct('${p._id}')" class="btn btn-sm btn-outline-danger px-3 rounded-pill">حذف</button>
                     </td>
-                </tr>
-            `}).join('');
+                </tr>`;
+            }).join('');
         }
 
-        // 4. Handle Form Submit
+        // Toggle Stock
+        async function toggleStock(id) {
+            try {
+                await fetch(`${API_URL}/${id}/toggle`, { method: 'PUT', headers: { 'Authorization': ADMIN_TOKEN } });
+                fetchInventory();
+            } catch(e) { alert("Error"); }
+        }
+
+        // Handle Add/Edit Submit
         document.getElementById('productForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('saveBtn');
-            const originalText = btn.innerText;
-            
-            btn.innerText = "جاري الرفع...";
             btn.disabled = true;
-
-            const formData = new FormData(e.target);
             
-            // Auto-fill English fields with Arabic content if backend requires them, or just send empty string
-            // This prevents backend validation errors if 'name_en' is required
-            if (!formData.get('name_en')) {
-                formData.set('name_en', formData.get('name_ar')); 
-            }
-             if (!formData.get('description_en')) {
-                formData.set('description_en', formData.get('description_ar')); 
-            }
+            const formData = new FormData(e.target);
+            const editId = document.getElementById('editId').value;
+            
+            // Mirror Arabic fields to English if empty
+            if (!formData.get('name_en')) formData.set('name_en', formData.get('name_ar')); 
+            if (!formData.get('description_en')) formData.set('description_en', formData.get('description_ar')); 
+
+            const url = editId ? `${API_URL}/${editId}` : API_URL;
+            const method = editId ? 'PUT' : 'POST';
 
             try {
-                const res = await fetch(API_URL, { 
-                    method: 'POST', 
+                const res = await fetch(url, { 
+                    method: method, 
                     headers: { 'Authorization': ADMIN_TOKEN },
                     body: formData 
                 });
-                
                 if (res.ok) {
                     modal.hide();
-                    e.target.reset();
-                    document.getElementById('previewContainer').innerHTML = '';
                     fetchInventory();
-                } else {
-                    alert("خطأ في حفظ المنتج. تأكد من الخادم.");
-                }
-            } catch (err) {
-                alert("فشل الاتصال بالخادم.");
-            } finally {
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }
+                } else { alert("فشل الحفظ"); }
+            } catch (err) { alert("خطأ في الخادم"); } 
+            finally { btn.disabled = false; }
         });
 
-        // 5. Delete Function
-        async function deleteProduct(id) {
-            if (!confirm("هل أنت متأكد أنك تريد حذف هذا المنتج؟")) return;
-            try {
-                const res = await fetch(`${API_URL}/${id}`, { 
-                    method: 'DELETE',
-                    headers: { 'Authorization': ADMIN_TOKEN }
-                });
-                if (res.ok) {
-                    fetchInventory();
-                } else {
-                    alert("فشل الحذف. صلاحيات غير كافية؟");
-                }
-            } catch(e) { alert("حدث خطأ أثناء الحذف"); }
+        // Open Modal for Editing
+        window.openEditModal = function(id) {
+            const p = allProducts.find(x => x._id === id);
+            if(!p) return;
+
+            document.getElementById('modalTitle').innerText = "تعديل المنتج";
+            document.getElementById('editId').value = p._id;
+            document.getElementById('name_ar').value = p.name_ar || '';
+            document.getElementById('price').value = p.price;
+            document.getElementById('oldPrice').value = p.oldPrice || '';
+            document.getElementById('category').value = p.category;
+            document.getElementById('inStock').value = p.inStock;
+            document.getElementById('sizes').value = p.sizes ? p.sizes.join(', ') : '';
+            document.getElementById('description_ar').value = p.description_ar || '';
+            document.getElementById('previewContainer').innerHTML = ''; // Clear previews
+            modal.show();
         }
 
-        // 6. UI Helpers
-        function openAddModal() {
+        // Open Modal for Adding
+        window.openAddModal = function() {
             document.getElementById('productForm').reset();
+            document.getElementById('modalTitle').innerText = "إضافة منتج جديد";
+            document.getElementById('editId').value = ""; // Clear ID to indicate Create mode
             document.getElementById('previewContainer').innerHTML = '';
             modal.show();
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm("حذف المنتج؟")) return;
+            try {
+                const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers: { 'Authorization': ADMIN_TOKEN } });
+                if (res.ok) fetchInventory();
+            } catch(e) {}
         }
 
         document.getElementById('imageFiles').addEventListener('change', function(e) {
