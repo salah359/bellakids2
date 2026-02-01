@@ -112,36 +112,26 @@ body {
 .cat-card {
     min-height: 300px; /* Taller for a premium feel */
     border-radius: 50px; /* Super rounded corners */
-    /* Fun bouncy animation */
     transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
     display: flex;
     flex-direction: column;
     justify-content: center;
-    border: 4px solid white; /* Thick white frame */
+    border: 4px solid white; 
     padding: 2.5rem;
     position: relative;
     overflow: hidden;
     box-shadow: 0 15px 35px rgba(0,0,0,0.05);
 }
 
-/* Lift & Glow on Hover */
 .cat-card:hover { 
     transform: translateY(-15px) scale(1.02);
     box-shadow: 0 30px 60px rgba(162, 210, 255, 0.3);
 }
 
-/* Magical Gradient Backgrounds */
-.boys-bg { 
-    background: linear-gradient(135deg, #E3F2FD 0%, #90CAF9 100%); 
-}
-.girls-bg { 
-    background: linear-gradient(135deg, #FCE4EC 0%, #FFB7B2 100%); 
-}
-.newborn-bg { 
-    background: linear-gradient(135deg, #F3E5F5 0%, #E0BBE4 100%); 
-}
+.boys-bg { background: linear-gradient(135deg, #E3F2FD 0%, #90CAF9 100%); }
+.girls-bg { background: linear-gradient(135deg, #FCE4EC 0%, #FFB7B2 100%); }
+.newborn-bg { background: linear-gradient(135deg, #F3E5F5 0%, #E0BBE4 100%); }
 
-/* Typography pop inside the cards */
 .cat-card h2 {
     font-weight: 800;
     color: #444;
@@ -149,11 +139,10 @@ body {
 }
 
 .cat-card:hover h2 {
-    transform: scale(1.05); /* Text grows slightly */
+    transform: scale(1.05);
     color: #222;
 }
 
-/* Inner Light Shine Effect */
 .cat-card::before {
     content: '';
     position: absolute;
@@ -167,10 +156,7 @@ body {
     transition: all 0.6s ease;
 }
 
-.cat-card:hover::before {
-    opacity: 1;
-    transform: scale(1);
-}
+.cat-card:hover::before { opacity: 1; transform: scale(1); }
 
 /* --- PRODUCT CARDS --- */
 .product-card {
@@ -236,7 +222,6 @@ body {
     flex-direction: column;
 }
 
-/* Alignment Logic for Multilingual Footer */
 html[lang="en"] .social-icon-wrapper { justify-content: flex-end; }
 html[lang="ar"] .social-icon-wrapper { justify-content: flex-start; }
 
@@ -285,42 +270,45 @@ html[lang="ar"] .social-icon-wrapper { justify-content: flex-start; }
 @media (max-width: 768px) {
     .nav-logo { height: 60px; }
     
-    /* Fixed: Both bubbles identical and perfectly aligned on mobile */
     .whatsapp-float, .cart-float {
-        width: 55px; /* Matched mobile size */
-        height: 55px; /* Matched mobile size */
+        width: 55px; 
+        height: 55px; 
         right: 20px;
     }
     
-    .whatsapp-float {
-        bottom: 20px;
-    }
-    
-    .whatsapp-float img {
-        width: 28px;
-    }
-
-    .cart-float {
-        bottom: 85px; /* Maintains stacking distance */
-        font-size: 1.5rem;
-    }
+    .whatsapp-float { bottom: 20px; }
+    .whatsapp-float img { width: 28px; }
+    .cart-float { bottom: 85px; font-size: 1.5rem; }
     
     .cart-float .badge {
         width: 22px;
         height: 22px;
         font-size: 0.7rem;
     }
+
+    /* RESTORED MOBILE BUBBLE FIX (Side-by-Side) */
+    .cat-card {
+        min-height: 90px !important;
+        padding: 0.6rem 0.2rem !important;
+        border-radius: 20px !important;
+        border-width: 2px !important;
+        text-align: center;
+    }
+    .cat-card h2 { font-size: 0.9rem !important; margin: 0; }
+    .cat-card p { display: none !important; } /* Hidden to fit horizontally */
+    .cat-card a { font-size: 0.7rem !important; }
     
     .social-column { align-items: center !important; }
     .social-icon-wrapper { justify-content: center !important; }
 }
+
 /* Color Swatch Styling */
 #colorSelector .btn {
     width: 35px;
     height: 35px;
-    border-radius: 50% !important; /* Makes it a circle */
+    border-radius: 50% !important;
     border: 2px solid #eee !important;
-    font-size: 0 !important; /* Hides the text name */
+    font-size: 0 !important;
     padding: 0 !important;
     margin: 5px !important;
     transition: all 0.2s ease;
@@ -329,20 +317,14 @@ html[lang="ar"] .social-icon-wrapper { justify-content: flex-start; }
     overflow: hidden;
 }
 
-/* Hover Effect */
-#colorSelector .btn:hover {
-    transform: scale(1.1);
-    border-color: #ccc !important;
-}
+#colorSelector .btn:hover { transform: scale(1.1); border-color: #ccc !important; }
 
-/* Selected State */
 #colorSelector .btn.btn-dark {
     border: 2px solid #333 !important;
     transform: scale(1.2);
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
-/* Adds a white checkmark when selected */
 #colorSelector .btn.btn-dark::after {
     content: '✓';
     font-size: 14px !important;
