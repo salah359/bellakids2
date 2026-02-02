@@ -1,9 +1,0 @@
-# Ignore the massive dependency folder
-node_modules/
-
-# Ignore your secrets (VERY IMPORTANT)
-.env
-
-# Ignore system files
-.DS_Store
-Thumbs.db
