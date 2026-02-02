@@ -52,7 +52,7 @@ const I18N = {
         "whatsapp_intro": "مرحباً بيلا كيدز، أود تقديم طلب للمنتجات التالية:", 
         "size": "المقاس", "color": "الموديل", "qty": "الكمية", "item_code": "لون المنتج",
         "search_placeholder": "بحث...", "sale": "خصم", "off": "توفير",
-        "variant_code": "كود الصورة"
+        "variant_code": "لون المنتج"
     }
 };
 
@@ -391,7 +391,7 @@ function sendToWhatsApp() {
         msg += `- ${t.size}: ${item.size}\n`;
         
         // --- NEW: Add the specific code to the message ---
-        if(item.variantId) msg += `- ${t.variant_code}: ${item.variantId} (See Image)\n`;
+        if(item.variantId) msg += `- ${t.variant_code}: ${item.variantId} \n`;
         // -------------------------------------------------
 
         msg += `- ${t.qty}: ${item.qty}\n`;
@@ -439,3 +439,4 @@ function initBalloons() {
     }
 
 }
+
