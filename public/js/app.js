@@ -50,7 +50,7 @@ const I18N = {
         "in_stock": "متوفر", "select_size": "اختر المقاس!", "select_color": "اختر الموديل!", "cart_empty": "السلة فارغة",
         "subtotal": "المجموع الفرعي", "delivery": "رسوم التوصيل", "total": "إجمالي قيمة الطلب",
         "whatsapp_intro": "مرحباً بيلا كيدز، أود تقديم طلب للمنتجات التالية:", 
-        "size": "المقاس", "color": "الموديل", "qty": "الكمية", "item_code": "رمز المنتج",
+        "size": "المقاس", "color": "الموديل", "qty": "الكمية", "item_code": "لون المنتج",
         "search_placeholder": "بحث...", "sale": "خصم", "off": "توفير",
         "variant_code": "كود الصورة"
     }
@@ -437,4 +437,5 @@ function initBalloons() {
         b.style.animationDelay = Math.random()*5 + 's';
         container.appendChild(b);
     }
+
 }
