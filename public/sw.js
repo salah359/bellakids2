@@ -1,4 +1,6 @@
-const cacheName = 'bella-v3'; // Updated to v3 to force a fresh start
+// public/sw.js
+
+const cacheName = 'bella-v4'; // Increment version (v3 -> v4) to force an update
 const staticAssets = [
   './',
   './index.html',
@@ -6,15 +8,15 @@ const staticAssets = [
   './js/app.js'
 ];
 
+// 1. Install Event: Cache static assets and force the new service worker to activate
 self.addEventListener('install', async el => {
-  // 1. Force the new service worker to take control immediately
-  self.skipWaiting();
+  self.skipWaiting(); 
   const cache = await caches.open(cacheName);
   await cache.addAll(staticAssets);
 });
 
+// 2. Activate Event: Clean up old caches immediately and take control of all tabs
 self.addEventListener('activate', el => {
-  // 2. Delete old caches (v1, v2) instantly so no ghost files remain
   el.waitUntil(
     caches.keys().then(keys => {
       return Promise.all(keys
@@ -26,16 +28,21 @@ self.addEventListener('activate', el => {
   return self.clients.claim();
 });
 
+// 3. Fetch Event: Implement a "Network First" strategy for pages and API
 self.addEventListener('fetch', el => {
   const req = el.request;
   const url = new URL(req.url);
 
-  // 3. STRATEGY: 
-  // - If asking for API data (products), go to Network (always get fresh prices)
-  // - If asking for Images/CSS/JS, check Cache first (loads faster)
-  if (url.pathname.startsWith('/api/')) {
-     el.respondWith(fetch(req));
+  // Use Network First for navigation (HTML pages) and API calls
+  // This ensures that refreshing the page always pulls the newest version from the server
+  if (req.mode === 'navigate' || url.pathname.startsWith('/api/')) {
+    el.respondWith(
+      fetch(req).catch(() => caches.match(req))
+    );
   } else {
-     el.respondWith(caches.match(req).then(res => res || fetch(req)));
+    // Use Cache First for static assets like images, CSS, and JS to maintain speed
+    el.respondWith(
+      caches.match(req).then(res => res || fetch(req))
+    );
   }
 });
