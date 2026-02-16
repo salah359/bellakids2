@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "bellakids-images",
+  "private_key_id": "23bbcc181b9e958857daef05c5c7ab8ca3fdcca2",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCjGZPcy5XBpcSb\naJkW6MYVc0r2Orqjx17eFfryU/cCIksKhqBigknr4XJRrsGGXDtLmfbzzx4bNwN4\nPmSAb4e3ISKuI2NT/6QOWf1s9vaOhOhx8SPNSKzS/d+8kmquU5ESfXc1jBBxx9yk\n1FtB6hVLNQQiepMtChByOrGAbSW6gowm3lTbzyl15+i8uwKxcXqGP1EbBVPK5YBg\nzHslwwz8LQkADtTAKss2MBS+ldXMoA30uHzSp52KajKtJB/wlX1EqwOs5CbZASMg\nk3pY3a4sS9ChZxedGdQbxWqXtXOeQ5mBmoA6mVLj2rb0Gy+MFpZ6I1aGhCPpzmR3\nQGT+xORFAgMBAAECggEABJ0TcNefbQK2kjDTbRxOMiAjRYjOwRWW1OW+m1PjClU/\nAIAOEbX0HQSGZSdyLk317W21rcWKPqR/6CBXsRxhNJMZizR8DvhjGHbU3jFe3b7b\ntma8Ulu/wRjRAeFgZtL9U7kR11rBbP6Fesd5AgnQQA2ICD5QYyHu6imdM2/4SmjI\nZPw6XvtDEEhnTDQfwVN95f9RC5KT8d7pMytc57PQGKgmwtCt1sMQzIoIgCMi/iqw\nDUE5aicn8zS9xUbUUTaEA+RUvMsBXRIl5HZwTsfiKL/xbOusJ4dUGq+4/aGFQW0y\nZ2SYdU8oRZs8YksDigWLenZDlQKlwjSjP1EBqGWmBwKBgQDNkTlja7i7RSXg+QhM\nUoTBt12NcHill+WCwewHg2ZDhqrXryzKInk92R3ER0GcsDg0jbKsLkZ+O83QB+hK\nt6ww1nkhOvXYO1CCQqXn9wyvTC1ShBd10F+cv0QFq9/UPXT2PKGrrIU48L2EVfmu\nFyaqV9ZsjW19Shr4b62mC2FDywKBgQDLHSo401uKFDNNBqM6jhJ1iSN9h9kuYQEt\ngSe+N9E0F+q3gAy8mh3I+18WjxW9zHiqkveLizyg8t5CMPghuDWb6lCjY4kn6qba\nF0J2EN4xE50HrFaMnu3eD0RJdgpMI4v8U5Y63xmFlERBkt4SIGPftGojLKJc8upv\na09QfYIWLwKBgFX8OeoJRAMpQFfjMwJhveAdqAcilYSGjdzs6qKV5u+1475GKtD+\nLIKfT6ErQRmeaFQrNSJqVNg2gbdTp2mhfGgNPiuVMwJYhSuHX0gxAWBN1+NdF0cT\nevrg0j4hD4YCkurwn5tklXEk2dEB+WdFjcnQ5gMQAU1X8wIaDKOYvP2TAoGBAKe+\nElyT0Qmb3TJDxRJausvu0iydwLMY0cwu2g+yMUgAaIvbaKlp7idJ0iHjUWVKNG1K\nqr3H4+5YJU4s+v9+DmgRfz8wuNkKZXm/s9el3ppRRGJN5byElJXLre2tWpu+z6E3\ntt4v2fgDlstA6720mkbpzK338q8ovov956blwEVpAoGAKlqedox/6OtrjjCSKEuR\nnG0TCU+F1jGMocRWzQPfvOcwEYoiYGNYRK7DeMnsGBTfXAefASagcCTLbqf9z9lc\nqO1pwD6jCtU5wOdIIlM81isSEqz4K6v2pBkku6QBw2WYvbRlzavhojSXFsY/PtZk\nYKiWMQVVvjQ/+lRnt0K3+D4=\n-----END PRIVATE KEY-----\n",
+  "client_email": "id-bellakids-storage-admin@bellakids-images.iam.gserviceaccount.com",
+  "client_id": "106233658938409922486",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/id-bellakids-storage-admin%40bellakids-images.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
