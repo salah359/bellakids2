@@ -233,9 +233,11 @@ app.get('/boys', (req, res) => res.sendFile(path.join(__dirname, 'public', 'boys
 app.get('/newborn', (req, res) => res.sendFile(path.join(__dirname, 'public', 'newborn.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin-login.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+app.get('/about', (req, res) => res.sendFile(path.join(__dirname, 'public', 'about.html')));
 
 app.get(/(.*)/, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
 
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
