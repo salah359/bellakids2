@@ -415,6 +415,7 @@ function updateCartTotalUI() {
 }
 
 // UPDATED: sendToWhatsApp now includes the Variant ID in the message
+// UPDATED: sendToWhatsApp now includes the Image URL, Item Code, and Variant ID
 function sendToWhatsApp() {
     if (state.cart.length === 0) return;
     const t = I18N[state.lang];
@@ -430,16 +431,25 @@ function sendToWhatsApp() {
     state.cart.forEach((item, index) => {
         const itemTotal = item.price * item.qty;
         subtotal += itemTotal;
+        
         msg += `*${index + 1}. ${item.name}*\n`;
+        
+        // Item Code
         if(item.itemId) msg += `- ${t.item_code}: ${item.itemId}\n`;
+        
+        // Size
         msg += `- ${t.size}: ${item.size}\n`;
         
-        // --- NEW: Add the specific code to the message ---
-        if(item.variantId) msg += `- ${t.variant_code}: ${item.variantId} \n`;
-        // -------------------------------------------------
+        // Variant/Color Code
+        if(item.variantId) {
+            msg += `- ${t.variant_code}: ${item.variantId}\n`;
+        }
 
+        // Quantity
         msg += `- ${t.qty}: ${item.qty}\n`;
         
+        // Product Image URL
+        msg += `- Image: ${item.img}\n\n`;
     });
 
     const total = subtotal + deliveryCost;
@@ -482,4 +492,54 @@ function initBalloons() {
         container.appendChild(b);
     }
 
+}
+
+async function getImageData(url) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous'; 
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL('image/jpeg'));
+        };
+        img.onerror = reject;
+        img.src = url;
+    });
+}
+async function generatePDFReceipt() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const t = I18N[state.lang];
+    let y = 45;
+    let subtotal = 0;
+
+    doc.setFontSize(22);
+    doc.text("Bella Kids - Order Receipt", 105, 20, { align: "center" });
+    doc.line(10, 35, 200, 35);
+
+    for (const item of state.cart) {
+        subtotal += (item.price * item.qty);
+        try {
+            const imgData = await getImageData(item.img);
+            doc.addImage(imgData, 'JPEG', 10, y - 5, 20, 20); 
+        } catch (e) { console.error("Image load failed", e); }
+
+        doc.setFont(undefined, 'bold');
+        doc.text(`${item.name}`, 35, y);
+        doc.setFont(undefined, 'normal');
+        doc.text(`${t.qty}: ${item.qty} | ${t.size}: ${item.size} | ${t.currency}${item.price}`, 35, y + 7);
+        if(item.variantId) doc.text(`${t.variant_code}: ${item.variantId}`, 35, y + 14);
+
+        y += 30;
+        if (y > 270) { doc.addPage(); y = 20; }
+    }
+
+    const deliverySelect = document.getElementById('deliveryRegion');
+    const fee = DELIVERY_RATES[deliverySelect?.value || 'wb'].price;
+    doc.text(`Total: ${t.currency}${subtotal + fee}`, 170, y, { align: "right" });
+    doc.save(`BellaKids_Order.pdf`);
 }
