@@ -300,20 +300,33 @@ function openProductModal(id) {
     updateModalQtyUI();
 
     const btn = document.getElementById('modalAddToCart');
-    btn.onclick = () => {
-        if(!state.selectedSize) { alert(t.select_size); return; }
-        
-        // UPDATED: Logic to find the Active Image and its Variant ID
-        const activeItem = document.querySelector('#productCarousel .carousel-item.active');
-        const activeIndex = activeItem ? parseInt(activeItem.getAttribute('data-index')) : 0;
-        
-        const selectedImgData = images[activeIndex];
-        const imgUrl = resolveImage(selectedImgData);
-        const variantId = getVariantId(selectedImgData); // NEW: Get the code
 
-        addToCart(p, state.selectedSize, imgUrl, state.modalQty, variantId);
-        bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
-    };
+    // NEW: Check if the product is in stock for the modal button
+    if (!p.inStock) {
+        btn.innerText = t.out_of_stock;
+        btn.disabled = true;
+        btn.classList.replace('btn-primary', 'btn-secondary');
+        btn.onclick = null; // Ensure no action if clicked
+    } else {
+        btn.innerText = t.add_to_cart;
+        btn.disabled = false;
+        btn.classList.replace('btn-secondary', 'btn-primary');
+        
+        btn.onclick = () => {
+            if(!state.selectedSize) { alert(t.select_size); return; }
+            
+            // Logic to find the Active Image and its Variant ID
+            const activeItem = document.querySelector('#productCarousel .carousel-item.active');
+            const activeIndex = activeItem ? parseInt(activeItem.getAttribute('data-index')) : 0;
+            
+            const selectedImgData = images[activeIndex];
+            const imgUrl = resolveImage(selectedImgData);
+            const variantId = getVariantId(selectedImgData);
+
+            addToCart(p, state.selectedSize, imgUrl, state.modalQty, variantId);
+            bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+        };
+    }
 
     new bootstrap.Modal(document.getElementById('productModal')).show();
 }
@@ -342,6 +355,9 @@ function updateModalQtyUI() { const input = document.getElementById('modalQty');
 
 // UPDATED: addToCart now saves the Variant ID
 function addToCart(p, size, imgUrl, qty, variantId) {
+    // Extra safety: Don't add if out of stock
+    if (!p.inStock) return;
+
     const name = state.lang === 'ar' ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar);
     
     // Check if item exists with same ID, Size, AND Variant Image
@@ -414,8 +430,7 @@ function updateCartTotalUI() {
     if(totalDisplay) totalDisplay.innerText = `${t.currency}${total.toFixed(2)}`;
 }
 
-// UPDATED: sendToWhatsApp now includes the Variant ID in the message
-// UPDATED: sendToWhatsApp now includes the Image URL, Item Code, and Variant ID
+// sendToWhatsApp now includes the Image URL, Item Code, and Variant ID
 function sendToWhatsApp() {
     if (state.cart.length === 0) return;
     const t = I18N[state.lang];
@@ -510,6 +525,7 @@ async function getImageData(url) {
         img.src = url;
     });
 }
+
 async function generatePDFReceipt() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
