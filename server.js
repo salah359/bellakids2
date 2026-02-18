@@ -8,6 +8,7 @@ const fs = require('fs');
 const bcrypt = require('bcryptjs');      
 const jwt = require('jsonwebtoken');     
 const crypto = require('crypto');        
+const cookieParser = require('cookie-parser'); // Added for cookie handling
 const { Storage } = require('@google-cloud/storage'); // ADDED: Import Google Cloud Storage
 
 const app = express();
@@ -33,6 +34,7 @@ console.log("------------------------------------------------");
 // --- MIDDLEWARE ---
 app.use(cors());
 app.use(express.json()); 
+app.use(cookieParser()); // Added to parse cookies for auth
 app.use(express.urlencoded({ extended: true })); 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -69,14 +71,26 @@ const ProductSchema = new mongoose.Schema({
 });
 const Product = mongoose.model('Product', ProductSchema);
 
-// --- AUTH MIDDLEWARE ---
+// --- AUTH MIDDLEWARE (API) ---
 const requireAuth = (req, res, next) => {
-    const token = req.headers['authorization'];
+    // Check both Authorization header and cookies
+    const token = req.headers['authorization'] || req.cookies?.adminToken;
     if (!token) return res.status(403).json({ error: "No Token" });
 
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
         if (err) return res.status(403).json({ error: "Invalid Token" });
         req.user = decoded; 
+        next();
+    });
+};
+
+// --- AUTH MIDDLEWARE (PAGE ACCESS) ---
+const requirePageAuth = (req, res, next) => {
+    const token = req.cookies?.adminToken;
+    if (!token) return res.redirect('/login');
+
+    jwt.verify(token, JWT_SECRET, (err) => {
+        if (err) return res.redirect('/login');
         next();
     });
 };
@@ -110,6 +124,14 @@ app.post('/api/login', (req, res) => {
     const { password } = req.body;
     if (bcrypt.compareSync(password, ADMIN_HASH)) {
         const token = jwt.sign({ role: 'admin' }, JWT_SECRET, { expiresIn: '1h' });
+        
+        // Set HTTP-only cookie for secure browser access to the admin page
+        res.cookie('adminToken', token, { 
+            httpOnly: true, 
+            secure: process.env.NODE_ENV === 'production', 
+            maxAge: 3600000 
+        });
+
         res.json({ success: true, token: token });
     } else {
         res.status(401).json({ success: false });
@@ -232,7 +254,7 @@ app.get('/girls', (req, res) => res.sendFile(path.join(__dirname, 'public', 'gir
 app.get('/boys', (req, res) => res.sendFile(path.join(__dirname, 'public', 'boys.html')));
 app.get('/newborn', (req, res) => res.sendFile(path.join(__dirname, 'public', 'newborn.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin-login.html')));
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+app.get('/admin', requirePageAuth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/about', (req, res) => res.sendFile(path.join(__dirname, 'public', 'about.html')));
 
 app.get(/(.*)/, (req, res) => {
