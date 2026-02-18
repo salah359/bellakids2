@@ -4,9 +4,19 @@ const cacheName = 'bella-v4'; // Increment version (v3 -> v4) to force an update
 const staticAssets = [
   './',
   './index.html',
+  './girls.html',
+  './boys.html',
+  './newborn.html',
+  './about.html',
+  './admin.html',
+  './admin-login.html',
   './css/style.css',
   './js/app.js'
 ];
+
+// Constants for hourly cleanup
+const ONE_HOUR = 60 * 60 * 1000;
+let lastCleared = Date.now();
 
 // 1. Install Event: Cache static assets and force the new service worker to activate
 self.addEventListener('install', async el => {
@@ -29,7 +39,20 @@ self.addEventListener('activate', el => {
 });
 
 // 3. Fetch Event: Implement a "Network First" strategy for pages and API
+// Includes new logic to clear cache if an hour has passed
 self.addEventListener('fetch', el => {
+  const currentTime = Date.now();
+  
+  // Check if an hour has passed since the last automatic clear
+  if (currentTime - lastCleared > ONE_HOUR) {
+    lastCleared = currentTime;
+    el.waitUntil(
+      caches.keys().then(keys => {
+        return Promise.all(keys.map(key => caches.delete(key)));
+      })
+    );
+  }
+
   const req = el.request;
   const url = new URL(req.url);
 
