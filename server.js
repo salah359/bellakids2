@@ -239,8 +239,29 @@ app.put('/api/products/:id/toggle', requireAuth, async (req, res) => {
 // DELETE Product
 app.delete('/api/products/:id', requireAuth, async (req, res) => {
     try {
+        // Find and delete the product from MongoDB
         const product = await Product.findByIdAndDelete(req.params.id);
-        // Note: For full cleanup, you would use bucket.file(name).delete() here
+        
+        // If the product existed and had images, delete them from Cloud Storage
+        if (product && product.images && product.images.length > 0) {
+            for (const img of product.images) {
+                // Check if the URL belongs to Google Cloud Storage
+                if (img.url && img.url.includes('storage.googleapis.com')) {
+                    // Extract the filename from the end of the URL
+                    const urlParts = img.url.split('/');
+                    const fileName = decodeURIComponent(urlParts[urlParts.length - 1]);
+
+                    try {
+                        // Delete the file from the GCS bucket
+                        await bucket.file(fileName).delete();
+                        console.log(`Successfully deleted ${fileName} from Cloud Storage`);
+                    } catch (gcsErr) {
+                        console.error(`Failed to delete ${fileName} from Cloud Storage:`, gcsErr);
+                    }
+                }
+            }
+        }
+
         res.json({ message: "Deleted" });
     } catch (err) {
         res.status(500).json({ error: err.message });
