@@ -335,3 +335,42 @@ html[lang="ar"] .social-icon-wrapper { justify-content: flex-start; }
     transform: translate(-50%, -50%);
     text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
+/* Decorative enhancements for product cards */
+.product-card {
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+}
+
+.product-card:hover {
+    box-shadow: 0 15px 30px rgba(162, 210, 255, 0.4) !important;
+}
+
+/* Decorative share button style */
+.share-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 35px;
+    height: 35px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(5px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    z-index: 10;
+    border: none;
+    color: var(--bella-blue);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.share-btn:hover {
+    background: var(--bella-blue);
+    color: white;
+    transform: rotate(15deg) scale(1.1);
+}
