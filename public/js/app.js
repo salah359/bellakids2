@@ -114,6 +114,9 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSidebarCart(); 
     fetchProducts();
     
+    // FETCH THE CAROUSEL SLIDES
+    fetchHeroSlides(); 
+    
     // Search listener
     const searchInput = document.getElementById('productSearch');
     if (searchInput) searchInput.addEventListener('keyup', () => filterGrid());
@@ -161,13 +164,10 @@ async function fetchProducts() {
         filterGrid(); 
 
         // AUTO-OPEN PRODUCT LOGIC
-        // Check if there is an ID in the URL, and if so, automatically open the product modal.
-        // This is extremely useful for shared links so the user sees the exact product immediately.
         const urlParams = new URLSearchParams(window.location.search);
         const autoOpenId = urlParams.get('id');
         
         if (autoOpenId) {
-            // Add a small delay to ensure the DOM is fully rendered before showing the modal
             setTimeout(() => {
                 openProductModal(autoOpenId);
             }, 600);
@@ -222,7 +222,6 @@ function renderProducts(products, container) {
 
     products.forEach(p => {
         const name = state.lang === 'ar' ? (p.name_ar || p.name) : (p.name_en || p.name);
-        // Updated to safely handle object/string images
         const firstImg = (p.images && p.images.length > 0) ? p.images[0] : null;
         const imageSrc = resolveImage(firstImg);
         
@@ -243,9 +242,6 @@ function renderProducts(products, container) {
         const btnClass = isSoldOut ? 'btn-secondary' : 'btn-outline-dark';
         const cardOpacity = isSoldOut ? 'opacity: 0.75;' : '';
 
-        // Product URL for sharing
-        // We use the current page's pathname so the user returns to the exact same page, but with the product ID
-        // so that the specific product automatically opens up for them.
         const productUrl = `${window.location.origin}${window.location.pathname}?id=${p._id}`;
 
         container.innerHTML += `
@@ -282,7 +278,6 @@ function openProductModal(id) {
 
     const images = (p.images && p.images.length) ? p.images : ['placeholder.png'];
     
-    // UPDATED: Render Carousel Items
     let carouselItems = images.map((img, idx) => `
         <div class="carousel-item ${idx === 0 ? 'active' : ''}" data-index="${idx}">
             <img src="${resolveImage(img)}" class="d-block w-100 object-fit-cover" style="height: 400px;">
@@ -327,12 +322,11 @@ function openProductModal(id) {
 
     const btn = document.getElementById('modalAddToCart');
 
-    // NEW: Check if the product is in stock for the modal button
     if (!p.inStock) {
         btn.innerText = t.out_of_stock;
         btn.disabled = true;
         btn.classList.replace('btn-primary', 'btn-secondary');
-        btn.onclick = null; // Ensure no action if clicked
+        btn.onclick = null; 
     } else {
         btn.innerText = t.add_to_cart;
         btn.disabled = false;
@@ -341,7 +335,6 @@ function openProductModal(id) {
         btn.onclick = () => {
             if(!state.selectedSize) { alert(t.select_size); return; }
             
-            // Logic to find the Active Image and its Variant ID
             const activeItem = document.querySelector('#productCarousel .carousel-item.active');
             const activeIndex = activeItem ? parseInt(activeItem.getAttribute('data-index')) : 0;
             
@@ -379,14 +372,10 @@ function adjustModalQty(change) {
 
 function updateModalQtyUI() { const input = document.getElementById('modalQty'); if(input) input.value = state.modalQty; }
 
-// UPDATED: addToCart now saves the Variant ID
 function addToCart(p, size, imgUrl, qty, variantId) {
-    // Extra safety: Don't add if out of stock
     if (!p.inStock) return;
 
     const name = state.lang === 'ar' ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar);
-    
-    // Check if item exists with same ID, Size, AND Variant Image
     const exist = state.cart.find(x => x.id === p._id && x.size === size && x.img === imgUrl);
     
     if(exist) {
@@ -400,7 +389,7 @@ function addToCart(p, size, imgUrl, qty, variantId) {
             img: imgUrl, 
             size, 
             qty, 
-            variantId: variantId || '' // Save the code
+            variantId: variantId || '' 
         });
     }
     saveCart();
@@ -409,14 +398,12 @@ function addToCart(p, size, imgUrl, qty, variantId) {
 function removeFromCart(i) { state.cart.splice(i, 1); saveCart(); }
 
 function saveCart() { 
-    // Persist cart to local storage so it remains between sessions
     localStorage.setItem(CONFIG.CART_KEY, JSON.stringify(state.cart)); 
     updateCartCounts(); 
     renderSidebarCart(); 
 }
 
 function updateCartCounts() { 
-    // Update the visual representation of cart items
     const c = state.cart.reduce((a, b) => a + b.qty, 0); 
     document.querySelectorAll('.cart-count').forEach(e => e.innerText = c); 
 }
@@ -432,7 +419,6 @@ function renderSidebarCart() {
         return; 
     }
     state.cart.forEach((x, i) => {
-        // Display variant code in cart if it exists
         const codeHtml = x.variantId ? `<br><span class="text-success small fw-bold">${t.variant_code}: ${x.variantId}</span>` : '';
         
         div.innerHTML += `
@@ -467,7 +453,6 @@ function updateCartTotalUI() {
     if(totalDisplay) totalDisplay.innerText = `${t.currency}${total.toFixed(2)}`;
 }
 
-// sendToWhatsApp now includes the Image URL, Item Code, and Variant ID
 function sendToWhatsApp() {
     if (state.cart.length === 0) return;
     const t = I18N[state.lang];
@@ -485,22 +470,10 @@ function sendToWhatsApp() {
         subtotal += itemTotal;
         
         msg += `*${index + 1}. ${item.name}*\n`;
-        
-        // Item Code
         if(item.itemId) msg += `- ${t.item_code}: ${item.itemId}\n`;
-        
-        // Size
         msg += `- ${t.size}: ${item.size}\n`;
-        
-        // Variant/Color Code
-        if(item.variantId) {
-            msg += `- ${t.variant_code}: ${item.variantId}\n`;
-        }
-
-        // Quantity
+        if(item.variantId) msg += `- ${t.variant_code}: ${item.variantId}\n`;
         msg += `- ${t.qty}: ${item.qty}\n`;
-        
-        // Product Image URL
         msg += `- Image: ${item.img}\n\n`;
     });
 
@@ -543,7 +516,6 @@ function initBalloons() {
         b.style.animationDelay = Math.random()*5 + 's';
         container.appendChild(b);
     }
-
 }
 
 async function getImageData(url) {
@@ -597,7 +569,6 @@ async function generatePDFReceipt() {
     doc.save(`BellaKids_Order.pdf`);
 }
 
-// Global sharing function
 window.shareProduct = function(name, url) {
     if (navigator.share) {
         navigator.share({
@@ -606,8 +577,36 @@ window.shareProduct = function(name, url) {
             url: url,
         }).catch(console.error);
     } else {
-        // Fallback: Copy to clipboard
         navigator.clipboard.writeText(url);
         alert('Link copied to clipboard!');
     }
 };
+
+// MODIFIED: Replaced inline style with the responsive .hero-banner-img class
+async function fetchHeroSlides() {
+    const container = document.getElementById('carouselInner');
+    if (!container) return; 
+
+    try {
+        const res = await fetch('/api/slides');
+        const slides = await res.json();
+        
+        if (slides.length > 0) {
+            container.innerHTML = slides.map((s, idx) => `
+                <div class="carousel-item ${idx === 0 ? 'active' : ''}">
+                    <a href="${s.link && s.link !== '#' ? s.link : 'javascript:void(0)'}">
+                        <img src="${s.url}" class="d-block w-100 hero-banner-img" alt="عروض بيلا كيدز">
+                    </a>
+                </div>
+            `).join('');
+        } else {
+            // Hide the entire row (Carousel + Text) if no slides exist
+            const carouselRow = document.getElementById('mainHeroCarousel').closest('.row');
+            if (carouselRow) carouselRow.style.display = 'none';
+        }
+    } catch (err) {
+        console.error("Failed to load slides", err);
+        const carouselRow = document.getElementById('mainHeroCarousel').closest('.row');
+        if (carouselRow) carouselRow.style.display = 'none';
+    }
+}
