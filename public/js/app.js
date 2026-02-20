@@ -159,7 +159,23 @@ async function fetchProducts() {
         const res = await fetch(CONFIG.API_URL);
         state.products = await res.json();
         filterGrid(); 
-    } catch (err) { grid.innerHTML = `<div class="text-center py-5">Error loading</div>`; }
+
+        // AUTO-OPEN PRODUCT LOGIC
+        // Check if there is an ID in the URL, and if so, automatically open the product modal.
+        // This is extremely useful for shared links so the user sees the exact product immediately.
+        const urlParams = new URLSearchParams(window.location.search);
+        const autoOpenId = urlParams.get('id');
+        
+        if (autoOpenId) {
+            // Add a small delay to ensure the DOM is fully rendered before showing the modal
+            setTimeout(() => {
+                openProductModal(autoOpenId);
+            }, 600);
+        }
+
+    } catch (err) { 
+        grid.innerHTML = `<div class="text-center py-5">Error loading</div>`; 
+    }
 }
 
 function filterGrid() {
@@ -228,7 +244,9 @@ function renderProducts(products, container) {
         const cardOpacity = isSoldOut ? 'opacity: 0.75;' : '';
 
         // Product URL for sharing
-        const productUrl = `${window.location.origin}/product-details.html?id=${p._id}`;
+        // We use the current page's pathname so the user returns to the exact same page, but with the product ID
+        // so that the specific product automatically opens up for them.
+        const productUrl = `${window.location.origin}${window.location.pathname}?id=${p._id}`;
 
         container.innerHTML += `
         <div class="col-6 col-md-4 col-lg-3 mb-4" data-aos="fade-up">
@@ -389,8 +407,19 @@ function addToCart(p, size, imgUrl, qty, variantId) {
 }
 
 function removeFromCart(i) { state.cart.splice(i, 1); saveCart(); }
-function saveCart() { localStorage.setItem(CONFIG.CART_KEY, JSON.stringify(state.cart)); updateCartCounts(); renderSidebarCart(); }
-function updateCartCounts() { const c = state.cart.reduce((a, b) => a + b.qty, 0); document.querySelectorAll('.cart-count').forEach(e => e.innerText = c); }
+
+function saveCart() { 
+    // Persist cart to local storage so it remains between sessions
+    localStorage.setItem(CONFIG.CART_KEY, JSON.stringify(state.cart)); 
+    updateCartCounts(); 
+    renderSidebarCart(); 
+}
+
+function updateCartCounts() { 
+    // Update the visual representation of cart items
+    const c = state.cart.reduce((a, b) => a + b.qty, 0); 
+    document.querySelectorAll('.cart-count').forEach(e => e.innerText = c); 
+}
 
 function renderSidebarCart() {
     const div = document.getElementById('cartItems');
