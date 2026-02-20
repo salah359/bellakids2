@@ -8,8 +8,8 @@ const fs = require('fs');
 const bcrypt = require('bcryptjs');      
 const jwt = require('jsonwebtoken');     
 const crypto = require('crypto');        
-const cookieParser = require('cookie-parser'); // Added for cookie handling
-const { Storage } = require('@google-cloud/storage'); // ADDED: Import Google Cloud Storage
+const cookieParser = require('cookie-parser'); 
+const { Storage } = require('@google-cloud/storage'); 
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,12 +20,12 @@ const RAW_PASSWORD = process.env.ADMIN_PASS || 'magic123';
 const SALT = bcrypt.genSaltSync(12); 
 const ADMIN_HASH = bcrypt.hashSync(RAW_PASSWORD, SALT);
 
-// ADDED: Initialize Google Cloud Storage
+// Initialize Google Cloud Storage
 const storageGCS = new Storage({
-    keyFilename: process.env.GCS_KEY_FILE || './gcs-key.json', // Path to your downloaded JSON key
-    projectId: process.env.GCP_PROJECT_ID // Your Google Cloud Project ID
+    keyFilename: process.env.GCS_KEY_FILE || './gcs-key.json',
+    projectId: process.env.GCP_PROJECT_ID 
 });
-const bucket = storageGCS.bucket(process.env.GCS_BUCKET_NAME || 'bellakids-images'); // Your bucket name
+const bucket = storageGCS.bucket(process.env.GCS_BUCKET_NAME || 'bellakids-images'); 
 
 console.log("------------------------------------------------");
 console.log("🛡️  SECURITY SYSTEM ACTIVE & CLOUD STORAGE READY");
@@ -34,7 +34,7 @@ console.log("------------------------------------------------");
 // --- MIDDLEWARE ---
 app.use(cors());
 app.use(express.json()); 
-app.use(cookieParser()); // Added to parse cookies for auth
+app.use(cookieParser()); 
 app.use(express.urlencoded({ extended: true })); 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -46,10 +46,9 @@ mongoose.connect(dbURI)
     .catch(err => console.error("❌ DB Connection Error:", err));
 
 // --- UPLOAD CONFIGURATION ---
-// UPDATED: Changed to memoryStorage to handle files before sending to Cloud
 const upload = multer({ 
     storage: multer.memoryStorage(),
-    limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+    limits: { fileSize: 5 * 1024 * 1024 } 
 });
 
 // --- MODEL ---
@@ -73,7 +72,6 @@ const Product = mongoose.model('Product', ProductSchema);
 
 // --- AUTH MIDDLEWARE (API) ---
 const requireAuth = (req, res, next) => {
-    // Check both Authorization header and cookies
     const token = req.headers['authorization'] || req.cookies?.adminToken;
     if (!token) return res.status(403).json({ error: "No Token" });
 
@@ -96,14 +94,13 @@ const requirePageAuth = (req, res, next) => {
 };
 
 // --- HELPER FUNCTION FOR CLOUD UPLOAD ---
-// ADDED: Handles the actual stream to Google Cloud Storage
 const uploadToGCS = (file, variantCode) => {
     return new Promise((resolve, reject) => {
         const fileName = `${Date.now()}-${file.originalname.replace(/\s+/g, '_')}`;
         const blob = bucket.file(fileName);
         const blobStream = blob.createWriteStream({
             resumable: false,
-            public: true, // Makes the image viewable by everyone
+            public: true, 
             metadata: { contentType: file.mimetype }
         });
 
@@ -117,15 +114,65 @@ const uploadToGCS = (file, variantCode) => {
     });
 };
 
-// --- ROUTES ---
+// --- CAROUSEL SLIDE MODEL ---
+const SlideSchema = new mongoose.Schema({
+    url: { type: String, required: true },
+    link: { type: String, default: '#' }, 
+    createdAt: { type: Date, default: Date.now }
+});
+const Slide = mongoose.model('Slide', SlideSchema);
 
-// Login API
+// --- CAROUSEL ROUTES ---
+app.get('/api/slides', async (req, res) => {
+    try {
+        const slides = await Slide.find().sort({ createdAt: -1 });
+        res.json(slides);
+    } catch (err) {
+        res.status(500).json({ error: "Fetch error" });
+    }
+});
+
+app.post('/api/slides', requireAuth, upload.single('image'), async (req, res) => {
+    try {
+        const { link } = req.body;
+        if (!req.file) return res.status(400).json({ error: "No image provided" });
+        
+        const uploadResult = await uploadToGCS(req.file);
+        
+        const newSlide = new Slide({ url: uploadResult.url, link });
+        await newSlide.save();
+        res.status(201).json(newSlide);
+    } catch (err) {
+        console.error("Slide Upload Error:", err);
+        res.status(500).json({ error: "Upload failed" });
+    }
+});
+
+app.delete('/api/slides/:id', requireAuth, async (req, res) => {
+    try {
+        const slide = await Slide.findByIdAndDelete(req.params.id);
+        
+        if (slide && slide.url && slide.url.includes('storage.googleapis.com')) {
+            const urlParts = slide.url.split('/');
+            const fileName = decodeURIComponent(urlParts[urlParts.length - 1]);
+            try {
+                await bucket.file(fileName).delete();
+            } catch (e) {
+                console.error("GCS Delete Error:", e);
+            }
+        }
+        res.json({ message: "Slide deleted" });
+    } catch (err) {
+        res.status(500).json({ error: "Delete failed" });
+    }
+});
+
+// --- ROUTES ---
 app.post('/api/login', (req, res) => {
     const { password } = req.body;
     if (bcrypt.compareSync(password, ADMIN_HASH)) {
         const token = jwt.sign({ role: 'admin' }, JWT_SECRET, { expiresIn: '1h' });
         
-        // Set HTTP-only cookie for secure browser access to the admin page
         res.cookie('adminToken', token, { 
             httpOnly: true, 
             secure: process.env.NODE_ENV === 'production', 
@@ -138,7 +185,6 @@ app.post('/api/login', (req, res) => {
     }
 });
 
-// GET Products
 app.get('/api/products', async (req, res) => {
     try {
         const products = await Product.find().sort({ createdAt: -1 });
@@ -148,7 +194,6 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
-// POST Product (Upload to Cloud)
 app.post('/api/products', requireAuth, upload.array('images', 10), async (req, res) => {
     try {
         const { itemId, name_en, name_ar, price, oldPrice, category, subCategory, sizes, colors, description_en, description_ar, inStock, imageCodes } = req.body;
@@ -156,7 +201,6 @@ app.post('/api/products', requireAuth, upload.array('images', 10), async (req, r
         let sizesArray = sizes ? sizes.split(',').map(s => s.trim()).filter(s => s !== '') : [];
         let colorsArray = colors ? colors.split(',').map(c => c.trim()).filter(c => c !== '') : [];
 
-        // NEW: Process images for Google Cloud Storage
         let codes = imageCodes || [];
         if (!Array.isArray(codes)) codes = [codes];
 
@@ -171,7 +215,7 @@ app.post('/api/products', requireAuth, upload.array('images', 10), async (req, r
             sizes: sizesArray,
             colors: colorsArray,
             description_en, description_ar,
-            images: imageObjects, // Stores public Cloud URLs
+            images: imageObjects, 
             inStock: inStock === 'true' || inStock === true 
         });
 
@@ -183,7 +227,6 @@ app.post('/api/products', requireAuth, upload.array('images', 10), async (req, r
     }
 });
 
-// EDIT Product (Upload new images to Cloud if provided)
 app.put('/api/products/:id', requireAuth, upload.array('images', 10), async (req, res) => {
     try {
         const { itemId, name_en, name_ar, price, oldPrice, category, subCategory, sizes, colors, description_en, description_ar, inStock, imageCodes } = req.body;
@@ -204,7 +247,6 @@ app.put('/api/products/:id', requireAuth, upload.array('images', 10), async (req
         if (sizes) product.sizes = sizes.split(',').map(s => s.trim()).filter(s => s !== '');
         if (colors) product.colors = colors.split(',').map(c => c.trim()).filter(c => c !== ''); 
         
-        // NEW: Handle Cloud Upload for updated images
         if (req.files && req.files.length > 0) {
             let codes = imageCodes || [];
             if (!Array.isArray(codes)) codes = [codes];
@@ -220,7 +262,6 @@ app.put('/api/products/:id', requireAuth, upload.array('images', 10), async (req
     }
 });
 
-// TOGGLE STOCK
 app.put('/api/products/:id/toggle', requireAuth, async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);
@@ -236,23 +277,17 @@ app.put('/api/products/:id/toggle', requireAuth, async (req, res) => {
     }
 });
 
-// DELETE Product
 app.delete('/api/products/:id', requireAuth, async (req, res) => {
     try {
-        // Find and delete the product from MongoDB
         const product = await Product.findByIdAndDelete(req.params.id);
         
-        // If the product existed and had images, delete them from Cloud Storage
         if (product && product.images && product.images.length > 0) {
             for (const img of product.images) {
-                // Check if the URL belongs to Google Cloud Storage
                 if (img.url && img.url.includes('storage.googleapis.com')) {
-                    // Extract the filename from the end of the URL
                     const urlParts = img.url.split('/');
                     const fileName = decodeURIComponent(urlParts[urlParts.length - 1]);
 
                     try {
-                        // Delete the file from the GCS bucket
                         await bucket.file(fileName).delete();
                         console.log(`Successfully deleted ${fileName} from Cloud Storage`);
                     } catch (gcsErr) {
@@ -268,7 +303,6 @@ app.delete('/api/products/:id', requireAuth, async (req, res) => {
     }
 });
 
-// Routes
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/home', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/girls', (req, res) => res.sendFile(path.join(__dirname, 'public', 'girls.html')));
