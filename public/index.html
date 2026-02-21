@@ -20,22 +20,40 @@
     <link rel="stylesheet" href="css/style.css">
 
     <style>
-        body { font-family: 'Cairo', sans-serif !important; }
+        /* FIX APPLIED: I commented out the touch-action below. 
+           This was causing the "clunky" scroll feeling when touching the carousel.
+        */
+        /* #mainHeroCarousel, 
+        #mainHeroCarousel .carousel-inner, 
+        #mainHeroCarousel .carousel-item {
+            touch-action: pan-y !important; 
+        } 
+        */
 
         .hero-banner-img {
             /* Use content-visibility to improve rendering speed */
             content-visibility: auto;
             /* Ensure the image doesn't block the UI thread */
             will-change: transform;
-            width: 100%;
-            height: 250px; /* Mobile height */
-            object-fit: contain; /* Ensures the whole image fits without cropping */
-            background-color: #f8f9fa; /* Fills empty space if image ratio doesn't perfectly match */
         }
-        @media (min-width: 992px) {
-            .hero-banner-img {
-                height: 450px; /* Desktop height */
-            }
+        
+        html {
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            /* FIX APPLIED: Changed from -webkit-fill-available to auto to allow scrolling */
+            /* height: -webkit-fill-available; */ 
+            height: auto !important; 
+            min-height: 100%;
+        }
+
+        body { 
+            font-family: 'Cairo', sans-serif !important; 
+            /* FIX APPLIED: Removed max-width constraint to match boys.html behavior */
+            /* max-width: 100vw; */
+            width: 100%;
+            overflow-x: hidden; 
+            position: relative; /* Keep this for your absolute elements like balloons */
+            -webkit-overflow-scrolling: touch; /* Ensures smooth momentum scrolling on iOS */
         }
         
         .hero-image-wrapper {
@@ -64,6 +82,19 @@
         .thumb-img { cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
         .thumb-img:hover, .thumb-img.active-thumb { border-color: #3498db; transform: scale(1.05); }
         .qty-input { width: 50px; text-align: center; border: 1px solid #dee2e6; }
+
+        /* NEW: Responsive Carousel Image */
+        .hero-banner-img {
+            width: 100%;
+            height: 250px; /* Mobile height */
+            object-fit: contain; /* Ensures the whole image fits without cropping */
+            background-color: #f8f9fa; /* Fills empty space if image ratio doesn't perfectly match */
+        }
+        @media (min-width: 992px) {
+            .hero-banner-img {
+                height: 450px; /* Desktop height */
+            }
+        }
 
         /* ADDED: Mobile optimization to ensure grid elements do not break out of screen width */
         @media (max-width: 768px) {
