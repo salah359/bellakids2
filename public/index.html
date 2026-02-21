@@ -22,16 +22,29 @@
     <style>
         /* --- SCROLL FIXES START --- */
         
-        /* 1. Force the Carousel to allow vertical scrolling (Up/Down) */
+        /* 1. Force Carousels and Products to allow vertical scrolling immediately */
         #mainHeroCarousel, 
         #mainHeroCarousel .carousel-inner, 
-        #mainHeroCarousel .carousel-item {
+        #mainHeroCarousel .carousel-item,
+        #product-grid, 
+        .card, 
+        .cat-card {
             touch-action: pan-y !important; 
             -webkit-user-select: none;
             user-select: none;
         }
 
-        /* 2. Optimize the HTML/Body for mobile scrolling */
+        /* 2. Prevent mobile browsers from trying to "drag" product images */
+        img {
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+            user-drag: none;
+            pointer-events: auto; /* Ensures clicks still work */
+        }
+
+        /* 3. Optimize the HTML/Body for mobile scrolling */
         html {
             overflow-x: hidden;
             scroll-behavior: smooth;
@@ -47,7 +60,7 @@
             overscroll-behavior-y: auto; /* Ensures the page can bounce/scroll freely */
         }
 
-        /* 3. Prevent Horizontal Stretching on Mobile */
+        /* 4. Prevent Horizontal Stretching on Mobile */
         @media (max-width: 768px) {
             .display-3 { font-size: 2.2rem !important; }
             .container { overflow-x: hidden; }
