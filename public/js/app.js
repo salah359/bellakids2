@@ -474,7 +474,8 @@ function sendToWhatsApp() {
         msg += `- ${t.size}: ${item.size}\n`;
         if(item.variantId) msg += `- ${t.variant_code}: ${item.variantId}\n`;
         msg += `- ${t.qty}: ${item.qty}\n`;
-        msg += `- Image: ${item.img}\n\n`;
+        const productLink = `${window.location.origin}/home?id=${item.id}`;
+msg += `- Link: ${productLink}\n\n`;
     });
 
     const total = subtotal + deliveryCost;
