@@ -10,8 +10,8 @@
       }
     </script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بيلا كيدز Bella Kids | Ramallah </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>بيلا كيدز | ملابس أطفال مميزة في رام الله</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="css/style.css">
 
     <style>
-        body { font-family: 'Cairo', sans-serif !important; }
+        body { font-family: 'Cairo', sans-serif !important; overflow-x: hidden; }
         
         .hero-image-wrapper {
             position: relative;
@@ -48,17 +48,38 @@
         .thumb-img:hover, .thumb-img.active-thumb { border-color: #3498db; transform: scale(1.05); }
         .qty-input { width: 50px; text-align: center; border: 1px solid #dee2e6; }
 
-        /* NEW: Responsive Carousel Image */
+        /* Responsive Carousel Image */
         .hero-banner-img {
             width: 100%;
-            height: 250px; /* Mobile height */
-            object-fit: contain; /* Ensures the whole image fits without cropping */
-            background-color: #f8f9fa; /* Fills empty space if image ratio doesn't perfectly match */
+            height: 250px; 
+            object-fit: contain; 
+            background-color: #f8f9fa; 
         }
         @media (min-width: 992px) {
             .hero-banner-img {
-                height: 450px; /* Desktop height */
+                height: 450px; 
             }
+        }
+
+        /* NEW: Perfect Mobile Optimization Rules */
+        @media (max-width: 767.98px) {
+            /* Scale down massive fonts so they don't break lines awkwardly */
+            .display-3 { font-size: 2.2rem !important; }
+            h2.fw-bold { font-size: 1.5rem !important; }
+            
+            /* Tighten padding to maximize screen real estate */
+            .py-5 { padding-top: 2rem !important; padding-bottom: 2rem !important; }
+            .p-5 { padding: 1.5rem !important; }
+            
+            /* Make filter dropdowns full width for easy thumb-tapping */
+            .filter-dropdown { max-width: 100% !important; width: 100% !important; }
+            .d-flex.gap-2 { flex-direction: column; width: 100%; }
+            
+            /* Fix carousel height for smaller phones */
+            .hero-banner-img { height: 200px; }
+            
+            /* Ensure the text block over the carousel looks compact */
+            .latest-offers-box { padding: 1.5rem !important; }
         }
     </style>
 </head>
@@ -68,25 +89,30 @@
         ✨ توصيل سريع في جميع المناطق! ✨
     </div>
 
-    <nav class="navbar navbar-expand-lg sticky-top glass-nav">
+    <nav class="navbar navbar-expand-lg sticky-top glass-nav shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold" href="/home">
-                <img src="assets/images/logo.png" alt="Bella Kids Logo" class="nav-logo">
+                <img src="assets/images/logo.png" alt="Bella Kids Logo" class="nav-logo" style="max-height: 40px;">
             </a>
             
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <div class="d-flex align-items-center gap-2 d-lg-none">
+                <button class="btn btn-primary rounded-pill px-3 position-relative btn-sm" data-bs-toggle="offcanvas" data-bs-target="#cartSidebar">
+                    🛒 <span class="badge bg-white text-primary cart-count ms-1">0</span>
+                </button>
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav mx-auto">
+                <ul class="navbar-nav mx-auto text-center mt-3 mt-lg-0">
                     <li class="nav-item"><a class="nav-link" href="/home">الرئيسية</a></li>
                     <li class="nav-item"><a class="nav-link" href="/boys">الأولاد</a></li>
                     <li class="nav-item"><a class="nav-link" href="/girls">البنات</a></li>
                     <li class="nav-item"><a class="nav-link" href="/newborn">المواليد</a></li>
                     <li class="nav-item"><a class="nav-link" href="/about">من نحن</a></li>
                 </ul>
-                <div class="d-flex align-items-center gap-3">
+                <div class="d-none d-lg-flex align-items-center gap-3">
                     <button class="btn btn-primary rounded-pill px-4 position-relative" data-bs-toggle="offcanvas" data-bs-target="#cartSidebar">
                         السلة <span class="badge bg-white text-primary cart-count ms-1">0</span>
                     </button>
@@ -95,14 +121,14 @@
         </div>
     </nav>
 
-    <header class="hero-section d-flex align-items-center">
+    <header class="hero-section d-flex align-items-center overflow-hidden">
         <div class="container">
             <div class="row align-items-center">
-                <div class="col-lg-5 text-center text-lg-start" data-aos="fade-left">
-                    <h1 class="display-3 fw-bold text-dark mb-4">أناقة طفلك تبدأ من هنا.</h1>
-                    <p class="lead mb-5 text-muted">أزياء أطفال بجودة عالية للأولاد والبنات في رام الله. اكتشف سحر الموضة لأطفالك.</p>
-                    <div class="d-flex gap-3 justify-content-center justify-content-lg-start">
-                        <a href="#featured" class="btn btn-primary btn-lg rounded-pill px-5 shadow-sm">تسوق الآن</a>
+                <div class="col-lg-5 text-center text-lg-start mt-4 mt-lg-0" data-aos="fade-left">
+                    <h1 class="display-3 fw-bold text-dark mb-3">أناقة طفلك تبدأ من هنا.</h1>
+                    <p class="lead mb-4 text-muted fs-6 fs-md-5">أزياء أطفال بجودة عالية للأولاد والبنات في رام الله. اكتشف سحر الموضة لأطفالك.</p>
+                    <div class="d-flex justify-content-center justify-content-lg-start">
+                        <a href="#featured" class="btn btn-primary btn-lg rounded-pill px-5 shadow-sm w-100 w-md-auto">تسوق الآن</a>
                     </div>
                 </div>
                 <div class="col-lg-7 mt-5 mt-lg-0 text-center" data-aos="zoom-in">
@@ -115,41 +141,39 @@
     </header>
 
     <section class="container py-5">
-        <div class="row g-4">
-            <div class="col-md-4" data-aos="fade-up">
-                <div class="cat-card newborn-bg p-5 rounded-5 shadow-sm position-relative overflow-hidden">
+        <div class="row g-3 g-md-4">
+            <div class="col-12 col-md-4" data-aos="fade-up">
+                <div class="cat-card newborn-bg p-4 p-md-5 rounded-5 shadow-sm position-relative overflow-hidden text-center text-md-start">
                     <h2 class="fw-bold">المواليد</h2>
-                    <p>لمسة ناعمة للقادمين الجدد.</p>
-                    <a href="/newborn" class="text-dark fw-bold text-decoration-none stretched-link">اكتشف ←</a>
+                    <p class="small mb-0">لمسة ناعمة للقادمين الجدد.</p>
+                    <a href="/newborn" class="text-dark fw-bold text-decoration-none stretched-link mt-2 d-inline-block">اكتشف ←</a>
                 </div>
             </div>
-            <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
-                <div class="cat-card boys-bg p-5 rounded-5 shadow-sm position-relative overflow-hidden">
+            <div class="col-12 col-md-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="cat-card boys-bg p-4 p-md-5 rounded-5 shadow-sm position-relative overflow-hidden text-center text-md-start">
                     <h2 class="fw-bold">الأولاد</h2>
-                    <p>أطقم عصرية وأنيقة.</p>
-                    <a href="/boys" class="text-dark fw-bold text-decoration-none stretched-link">اكتشف ←</a>
+                    <p class="small mb-0">أطقم عصرية وأنيقة.</p>
+                    <a href="/boys" class="text-dark fw-bold text-decoration-none stretched-link mt-2 d-inline-block">اكتشف ←</a>
                 </div>
             </div>
-            <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
-                <div class="cat-card girls-bg p-5 rounded-5 shadow-sm position-relative overflow-hidden">
+            <div class="col-12 col-md-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="cat-card girls-bg p-4 p-md-5 rounded-5 shadow-sm position-relative overflow-hidden text-center text-md-start">
                     <h2 class="fw-bold">البنات</h2>
-                    <p>فساتين لكل المناسبات.</p>
-                    <a href="/girls" class="text-dark fw-bold text-decoration-none stretched-link">اكتشف ←</a>
+                    <p class="small mb-0">فساتين لكل المناسبات.</p>
+                    <a href="/girls" class="text-dark fw-bold text-decoration-none stretched-link mt-2 d-inline-block">اكتشف ←</a>
                 </div>
             </div>
         </div>
     </section>
 
-    <main class="container py-5" id="featured">
+    <main class="container py-4" id="featured">
         
-        
-        <div class="row mb-5 g-4 align-items-center">
-
+        <div class="row mb-5 g-3 align-items-center">
             <div class="col-lg-4 text-center text-lg-start" data-aos="fade-right">
-                <div class="p-4 bg-white rounded-5 shadow-sm border h-100 d-flex flex-column justify-content-center">
-                    <h2 class="fw-bold text-primary mb-3">أحدث العروض</h2>
-                    <p class="text-muted lead mb-4">اكتشفوا تشكيلتنا الجديدة والحصرية بأسعار منافسة جداً. عروضنا متجددة دائماً لتناسب أناقة أطفالكم.</p>
-                    <a href="#featured" class="btn btn-outline-primary rounded-pill py-2 px-4 fw-bold">تصفح المنتجات</a>
+                <div class="latest-offers-box p-4 bg-white rounded-5 shadow-sm border h-100 d-flex flex-column justify-content-center">
+                    <h2 class="fw-bold text-primary mb-2">أحدث العروض</h2>
+                    <p class="text-muted small lead mb-3">اكتشفوا تشكيلتنا الجديدة والحصرية بأسعار منافسة جداً. عروضنا متجددة دائماً لتناسب أناقة أطفالكم.</p>
+                    <a href="#featured-products-start" class="btn btn-outline-primary rounded-pill py-2 px-4 fw-bold w-100">تصفح المنتجات</a>
                 </div>
             </div>
 
@@ -164,44 +188,46 @@
                         </div>
                     </div>
                     
-                    <button class="carousel-control-prev" type="button" data-bs-target="#mainHeroCarousel" data-bs-slide="prev" style="width: 8%;">
+                    <button class="carousel-control-prev" type="button" data-bs-target="#mainHeroCarousel" data-bs-slide="prev" style="width: 10%;">
                         <span class="carousel-control-prev-icon bg-dark rounded-circle p-2 shadow" aria-hidden="true"></span>
                     </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#mainHeroCarousel" data-bs-slide="next" style="width: 8%;">
+                    <button class="carousel-control-next" type="button" data-bs-target="#mainHeroCarousel" data-bs-slide="next" style="width: 10%;">
                         <span class="carousel-control-next-icon bg-dark rounded-circle p-2 shadow" aria-hidden="true"></span>
                     </button>
                 </div>
             </div>
-            <p></p>
-<h2 class="fw-bold mb-4 text-center">وصل حديثاً</h2>
         </div>
-        <div class="row mb-5 justify-content-center">
+
+        <div id="featured-products-start"></div>
+        <h2 class="fw-bold mb-4 text-center mt-4">وصل حديثاً</h2>
+
+        <div class="row mb-5 justify-content-center px-2">
             <div class="col-md-10 text-center">
                 <div class="input-group shadow-sm rounded-pill overflow-hidden border mb-3">
-                    <span class="input-group-text bg-white border-0 ps-4">🔍</span>
-                    <input type="text" id="productSearch" class="form-control border-0 py-3 ps-3" placeholder="ابحث عن منتج..." onkeyup="filterSearch()">
+                    <span class="input-group-text bg-white border-0 ps-3 ps-md-4">🔍</span>
+                    <input type="text" id="productSearch" class="form-control border-0 py-3 ps-2" placeholder="ابحث عن منتج..." onkeyup="filterSearch()">
                 </div>
 
-                <div class="d-flex flex-wrap gap-2 justify-content-center">
-                    <select class="form-select border shadow-sm py-2 rounded-pill bg-light" id="categoryFilter" onchange="filterSearch()" style="max-width: 180px;">
+                <div class="d-flex flex-wrap gap-2 justify-content-center w-100">
+                    <select class="form-select border shadow-sm py-2 rounded-pill bg-light filter-dropdown" id="categoryFilter" onchange="filterSearch()" style="max-width: 180px;">
                         <option value="all">كل الأقسام</option>
                         <option value="boys">الأولاد</option>
                         <option value="girls">البنات</option>
                         <option value="newborn">المواليد</option>
                     </select>
 
-                    <select class="form-select border shadow-sm py-2 rounded-pill bg-white" id="ageFilter" onchange="filterSearch()" style="max-width: 180px;">
+                    <select class="form-select border shadow-sm py-2 rounded-pill bg-white filter-dropdown" id="ageFilter" onchange="filterSearch()" style="max-width: 180px;">
                         <option value="all">كل الأعمار</option>
                     </select>
 
-                    <select class="form-select border shadow-sm py-2 rounded-pill bg-white" id="typeFilter" onchange="filterSearch()" style="max-width: 180px;">
+                    <select class="form-select border shadow-sm py-2 rounded-pill bg-white filter-dropdown" id="typeFilter" onchange="filterSearch()" style="max-width: 180px;">
                         <option value="all">كل الأنواع</option>
                     </select>
                 </div>
             </div>
         </div>
 
-        <div class="row g-4" id="product-grid"></div>
+        <div class="row g-3 g-md-4 px-2" id="product-grid"></div>
     </main>
 
     <div class="offcanvas offcanvas-end border-0 shadow" tabindex="-1" id="cartSidebar">
@@ -232,7 +258,7 @@
         </div>
     </div>
 
-    <button class="cart-float" data-bs-toggle="offcanvas" data-bs-target="#cartSidebar">
+    <button class="cart-float d-none d-lg-block" data-bs-toggle="offcanvas" data-bs-target="#cartSidebar">
         🛍️ <span class="badge bg-white text-primary cart-count ms-1">0</span>
     </button>
 
@@ -240,7 +266,7 @@
         <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA">
     </a>
 
-    <footer class="bg-light py-5 mt-5 border-top">
+    <footer class="bg-light py-5 mt-4 border-top">
         <div class="container">
             <div class="row g-4 align-items-center">
                 <div class="col-md-4 text-center text-md-start">
@@ -265,7 +291,7 @@
 
                 <div class="col-md-4 text-center text-md-end social-column">
                     <h6 class="fw-bold mb-3">تواصل معنا</h6>
-                    <div class="social-icon-wrapper d-flex gap-4">
+                    <div class="social-icon-wrapper d-flex gap-4 justify-content-center justify-content-md-end">
                         <a href="https://www.facebook.com/1BellaKids" target="_blank" class="text-decoration-none">
                             <svg class="social-icon" viewBox="0 0 24 24"><path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z"/></svg>
                         </a>
@@ -334,5 +360,3 @@
 
 </body>
 </html>
-
-
