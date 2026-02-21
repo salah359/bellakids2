@@ -20,6 +20,17 @@
     <link rel="stylesheet" href="css/style.css">
 
     <style>
+        #mainHeroCarousel {
+    /* Allows the page to scroll vertically even if the finger starts on the carousel */
+    touch-action: pan-y; 
+}
+
+.hero-banner-img {
+    /* Use content-visibility to improve rendering speed */
+    content-visibility: auto;
+    /* Ensure the image doesn't block the UI thread */
+    will-change: transform;
+}
         /* ADDED: html and body max-width and overflow-x hidden to strictly prevent mobile screen stretching */
         html, body { 
             font-family: 'Cairo', sans-serif !important; 
