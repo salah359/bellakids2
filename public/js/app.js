@@ -611,3 +611,15 @@ async function fetchHeroSlides() {
         if (carouselRow) carouselRow.style.display = 'none';
     }
 }
+// Inside fetchHeroSlides in app.js
+container.innerHTML = slides.map((s, idx) => `
+    <div class="carousel-item ${idx === 0 ? 'active' : ''}">
+        <a href="${s.link && s.link !== '#' ? s.link : 'javascript:void(0)'}">
+            <img src="${s.url}" 
+                 class="d-block w-100 hero-banner-img" 
+                 alt="عروض بيلا كيدز"
+                 ${idx === 0 ? 'fetchpriority="high"' : ''} 
+                 loading="eager">
+        </a>
+    </div>
+`).join('');
