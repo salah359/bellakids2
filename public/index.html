@@ -10,7 +10,8 @@
       }
     </script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#3498db">
     <title>بيلا كيدز Bella Kids | Ramallah </title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
@@ -19,7 +20,13 @@
     <link rel="stylesheet" href="css/style.css">
 
     <style>
-        body { font-family: 'Cairo', sans-serif !important; }
+        /* ADDED: html and body max-width and overflow-x hidden to strictly prevent mobile screen stretching */
+        html, body { 
+            font-family: 'Cairo', sans-serif !important; 
+            max-width: 100vw;
+            overflow-x: hidden; 
+            position: relative;
+        }
         
         .hero-image-wrapper {
             position: relative;
@@ -59,6 +66,14 @@
             .hero-banner-img {
                 height: 450px; /* Desktop height */
             }
+        }
+
+        /* ADDED: Mobile optimization to ensure grid elements do not break out of screen width */
+        @media (max-width: 768px) {
+            .display-3 { font-size: 2.2rem !important; }
+            .container { overflow-x: hidden; }
+            .filter-dropdown { width: 100%; max-width: 100% !important; margin-bottom: 8px; }
+            .d-flex.gap-2 { flex-wrap: wrap; width: 100%; }
         }
     </style>
 </head>
@@ -172,8 +187,12 @@
                     </button>
                 </div>
             </div>
-            <p></p>
-<h2 class="fw-bold mb-4 text-center">وصل حديثاً</h2>
+            
+            <div class="col-12 mt-4">
+                <p></p>
+                <h2 class="fw-bold mb-4 text-center">وصل حديثاً</h2>
+            </div>
+            
         </div>
         <div class="row mb-5 justify-content-center">
             <div class="col-md-10 text-center">
@@ -183,18 +202,18 @@
                 </div>
 
                 <div class="d-flex flex-wrap gap-2 justify-content-center">
-                    <select class="form-select border shadow-sm py-2 rounded-pill bg-light" id="categoryFilter" onchange="filterSearch()" style="max-width: 180px;">
+                    <select class="form-select border shadow-sm py-2 rounded-pill bg-light filter-dropdown" id="categoryFilter" onchange="filterSearch()" style="max-width: 180px;">
                         <option value="all">كل الأقسام</option>
                         <option value="boys">الأولاد</option>
                         <option value="girls">البنات</option>
                         <option value="newborn">المواليد</option>
                     </select>
 
-                    <select class="form-select border shadow-sm py-2 rounded-pill bg-white" id="ageFilter" onchange="filterSearch()" style="max-width: 180px;">
+                    <select class="form-select border shadow-sm py-2 rounded-pill bg-white filter-dropdown" id="ageFilter" onchange="filterSearch()" style="max-width: 180px;">
                         <option value="all">كل الأعمار</option>
                     </select>
 
-                    <select class="form-select border shadow-sm py-2 rounded-pill bg-white" id="typeFilter" onchange="filterSearch()" style="max-width: 180px;">
+                    <select class="form-select border shadow-sm py-2 rounded-pill bg-white filter-dropdown" id="typeFilter" onchange="filterSearch()" style="max-width: 180px;">
                         <option value="all">كل الأنواع</option>
                     </select>
                 </div>
@@ -334,4 +353,3 @@
 
 </body>
 </html>
-
