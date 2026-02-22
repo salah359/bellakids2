@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عيد مبارك | بيلا كيدز</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --eid-blue: #0f172a;
+            --eid-gold: #fbbf24;
+            --eid-accent: #d97706;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--eid-blue);
+            color: white;
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        /* Festive Background */
+        .eid-hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            position: relative;
+        }
+
+        /* Floating Lanterns Animation */
+        .lantern {
+            position: absolute;
+            width: 50px;
+            animation: float 4s ease-in-out infinite;
+            filter: drop-shadow(0 0 10px var(--eid-gold));
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Greeting Text */
+        .eid-title {
+            font-size: 5rem;
+            font-weight: 700;
+            color: var(--eid-gold);
+            text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+            margin-bottom: 20px;
+            z-index: 10;
+        }
+
+        .eid-subtitle {
+            font-size: 1.5rem;
+            opacity: 0.9;
+            margin-bottom: 40px;
+            z-index: 10;
+        }
+
+        .btn-eid {
+            background-color: var(--eid-gold);
+            color: var(--eid-blue) !important;
+            font-weight: bold;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            border: none;
+            z-index: 10;
+        }
+
+        .btn-eid:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px var(--eid-gold);
+        }
+
+        /* Stars Background */
+        #stars-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        /* NEW: Added Twinkling Stars CSS */
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.5;
+            pointer-events: none;
+            animation: twinkle 2s infinite ease-in-out;
+            z-index: 1;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { 
+                opacity: 0.3; 
+                transform: scale(1); 
+            }
+            50% { 
+                opacity: 1; 
+                transform: scale(1.2); 
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <section class="eid-hero">
+        <div id="stars-container"></div>
+        
+        <img src="https://img.icons8.com/fluency/96/crescent-moon.png" class="lantern" style="top: 5%; left: 45%; width: 80px;">
+
+        <div class="container" data-aos="zoom-in">
+            <h1 class="eid-title">عيد مبارك!</h1>
+            <p class="eid-subtitle"> من عائلة بيلا كيدز</p>
+            <a href="/home" class="btn btn-eid">تسوق مجموعة العيد 🛍️</a>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        // NEW: Generate Stars inside the existing stars-container
+        function generateStars() {
+            const starField = document.getElementById('stars-container');
+            if (!starField) return;
+            const starCount = 100; // Generate 100 stars
+
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                
+                // Randomize size
+                const size = Math.random() * 3 + 'px';
+                star.style.width = size;
+                star.style.height = size;
+                
+                // Randomize position
+                star.style.top = Math.random() * 100 + '%';
+                star.style.left = Math.random() * 100 + '%';
+                
+                // Randomize twinkle delay
+                star.style.animationDelay = Math.random() * 2 + 's';
+                
+                starField.appendChild(star);
+            }
+        }
+        
+        // Execute star generation immediately when document content loads
+        document.addEventListener('DOMContentLoaded', generateStars);
+
+        // Trigger Celebration Confetti on load (Kept exactly the same)
+        window.onload = () => {
+            const duration = 5 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                const particleCount = 50 * (timeLeft / duration);
+                // Gold and festive colors
+                confetti(Object.assign({}, defaults, { 
+                    particleCount, 
+                    origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+                    colors: ['#fbbf24', '#d97706', '#ffffff']
+                }));
+                confetti(Object.assign({}, defaults, { 
+                    particleCount, 
+                    origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+                    colors: ['#fbbf24', '#d97706', '#ffffff']
+                }));
+            }, 250);
+        };
+    </script>
+</body>
+</html>

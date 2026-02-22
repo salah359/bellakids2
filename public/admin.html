@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدير المتجر | بيلا كيدز</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #f4f7f6; }
+        .admin-card { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .product-img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; }
+        .navbar { background: #2d3436; }
+        .preview-wrapper { position: relative; width: 100px; text-align: center; }
+        .preview-thumb { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; }
+        th, td { text-align: right; vertical-align: middle; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark shadow-sm mb-4">
+        <div class="container">
+            <span class="navbar-brand fw-bold">🌸 مدير بيلا كيدز</span>
+            <div class="d-flex gap-2">
+                <a href="index.html" class="btn btn-outline-light btn-sm rounded-pill" target="_blank">عرض المتجر</a>
+                <button class="btn btn-danger btn-sm rounded-pill" onclick="handleLogout()">تسجيل خروج</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        <div class="row mb-3 align-items-center mt-4">
+            <div class="col-md-12">
+                <h2 class="fw-bold m-0">صور الغلاف (Carousel)</h2>
+                <p class="text-muted small">إدارة الصور المتحركة في الصفحة الرئيسية.</p>
+            </div>
+        </div>
+
+        <div class="card admin-card p-4 mb-5">
+            <form id="slideForm" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label small fw-bold">الصورة</label>
+                    <input type="file" id="slideImage" name="image" class="form-control" accept="image/*" required>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label small fw-bold">الرابط عند النقر (اختياري)</label>
+                    <input type="text" id="slideLink" name="link" class="form-control" placeholder="مثال: /boys أو /newborn">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" id="slideSaveBtn" class="btn btn-primary w-100 fw-bold shadow-sm">رفع الصورة</button>
+                </div>
+            </form>
+            
+            <div id="slideList" class="d-flex flex-wrap gap-3 mt-4"></div>
+        </div>
+        
+        <div class="row mb-4 align-items-center">
+            <div class="col-md-6">
+                <h2 class="fw-bold m-0">المخزون والمنتجات</h2>
+                <p class="text-muted small">إدارة الألوان، المقاسات، والأسعار.</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="openAddModal()">
+                    + إضافة منتج جديد
+                </button>
+            </div>
+        </div>
+
+        <div class="card admin-card overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="pe-4">الصورة</th>
+                            <th>ID</th>
+                            <th>الاسم</th>
+                            <th>السعر</th>
+                            <th>القسم / النوع</th>
+                            <th>الحالة</th>
+                            <th class="text-end ps-4">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="productModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow-lg">
+                <form id="productForm">
+                    <div class="modal-header bg-light border-0 py-3">
+                        <h5 class="modal-title fw-bold" id="modalTitle">إضافة منتج</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" style="margin-left: 0; margin-right: auto;"></button>
+                    </div>
+                    
+                    <div class="modal-body p-4">
+                        <input type="hidden" id="editId" name="id"> 
+                        <div class="row g-3">
+                            <input type="hidden" name="name_en" id="name_en">
+                            
+                            <div class="col-md-8">
+                                <label class="form-label small fw-bold text-success">الاسم (عربي)</label>
+                                <input type="text" name="name_ar" id="name_ar" class="form-control rounded-3" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">ID المنتج (اختياري)</label>
+                                <input type="text" name="itemId" id="itemId" class="form-control rounded-3" placeholder="مثلاً: BK-101">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">السعر الحالي (₪)</label>
+                                <input type="number" step="0.01" name="price" id="price" class="form-control rounded-3" required>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-danger">السعر القديم (للعروض)</label>
+                                <input type="number" step="0.01" name="oldPrice" id="oldPrice" class="form-control rounded-3" placeholder="اختياري">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">القسم</label>
+                                <select name="category" id="category" class="form-select rounded-3">
+                                    <option value="boys">أولاد</option>
+                                    <option value="girls">بنات</option>
+                                    <option value="newborn">مواليد</option>
+                                    <option value="all">الكل</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">نوع المنتج (فلتر)</label>
+                                <select name="subCategory" id="subCategory" class="form-select rounded-3">
+                                    <option value="pajamas">Pajamas (بيجامات)</option>
+                                    <option value="sportswear">Sportswear (رياضي)</option>
+                                    <option value="formal">Sportswear and formal wear (رسمي)</option>
+                                    <option value="overalls">Overalls (أفرهولات)</option>
+                                    <option value="pants">Pants (بناطيل)</option>
+                                    <option value="shirts">Shirts and blouses (قمصان)</option>
+                                    <option value="dresses">Skirts and dresses (فساتين)</option>
+                                    <option value="shoes">Shoes (أحذية)</option>
+                                    <option value="bags">Bags (حقائب)</option>
+                                    <option value="other">Other (غير ذلك)</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">حالة التوفر</label>
+                                <select name="inStock" id="inStock" class="form-select rounded-3">
+                                    <option value="true">✅ متوفر</option>
+                                    <option value="false">❌ نفد الكمية</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">المقاسات (افصل بينها بفاصلة)</label>
+                                <input type="text" name="sizes" id="sizes" class="form-control rounded-3" placeholder="مثال: 0-3M, 2Y, 3Y, 4Y" dir="ltr">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">الألوان (افصل بينها بفاصلة)</label>
+                                <input type="text" name="colors" id="colors" class="form-control rounded-3" placeholder="أحمر, أزرق, أبيض" dir="rtl">
+                            </div>
+
+                            <textarea name="description_en" id="description_en" class="d-none"></textarea>
+
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold text-muted">الوصف (عربي)</label>
+                                <textarea name="description_ar" id="description_ar" class="form-control rounded-3" rows="3"></textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="p-3 bg-light rounded-3 border dashed-border">
+                                    <label class="form-label small fw-bold d-block mb-3">📸 رفع الصور وتحديد الأكواد</label>
+                                    
+                                    <input type="file" name="images" id="imageFiles" class="form-control mb-3" multiple accept="image/*">
+                                    
+                                    <div id="previewContainer" class="d-flex gap-3 flex-wrap justify-content-center bg-white p-3 rounded shadow-sm" style="min-height: 100px;">
+                                        <div class="text-muted small my-auto">الصور المختارة ستظهر هنا...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer bg-light border-0">
+                        <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold" id="saveBtn">حفظ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        const API_URL = '/api/products';
+        const modal = new bootstrap.Modal(document.getElementById('productModal'));
+        const ADMIN_TOKEN = localStorage.getItem('adminToken');
+        let allProducts = [];
+
+        fetchInventory();
+
+        function handleLogout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = 'login';
+        }
+
+        async function fetchInventory() {
+            try {
+                const res = await fetch(API_URL);
+                allProducts = await res.json();
+                renderInventory(allProducts);
+            } catch (err) {
+                document.getElementById('inventoryList').innerHTML = `<tr><td colspan="8" class="text-center text-danger">خطأ في الاتصال</td></tr>`;
+            }
+        }
+
+        function getImageUrl(imgData) {
+            if (!imgData) return 'assets/images/placeholder.png';
+            const filename = (typeof imgData === 'string') ? imgData : imgData.url;
+            return filename.startsWith('http') ? filename : `/uploads/${filename}`;
+        }
+
+        function renderInventory(products) {
+            const tbody = document.getElementById('inventoryList');
+            if(products.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5">القائمة فارغة</td></tr>`;
+                return;
+            }
+
+            const categoryMap = { 'boys': 'أولاد', 'girls': 'بنات', 'newborn': 'مواليد', 'all': 'الكل' };
+
+            tbody.innerHTML = products.map(p => {
+                const firstImg = (p.images && p.images.length > 0) ? p.images[0] : null;
+                const imgPath = getImageUrl(firstImg);
+
+                const stockBtn = p.inStock 
+                    ? `<button onclick="toggleStock('${p._id}')" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm">✅ متوفر</button>`
+                    : `<button onclick="toggleStock('${p._id}')" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm">❌ نفد</button>`;
+                
+                return `
+                <tr>
+                    <td class="pe-4"><img src="${imgPath}" class="product-img shadow-sm"></td>
+                    <td class="small fw-bold text-muted">${p.itemId || '-'}</td>
+                    <td><div class="fw-bold text-dark">${p.name_ar || '-'}</div></td>
+                    <td class="fw-bold text-primary">₪${p.price}</td>
+                    <td>
+                        <span class="badge bg-light text-dark border">${categoryMap[p.category] || p.category}</span>
+                        <div class="small text-muted mt-1">${p.subCategory || '-'}</div>
+                    </td>
+                    <td>${stockBtn}</td>
+                    <td class="text-end ps-4">
+                        <button onclick="openEditModal('${p._id}')" class="btn btn-sm btn-primary px-3 rounded-pill me-1">تعديل</button>
+                        <button onclick="deleteProduct('${p._id}')" class="btn btn-sm btn-outline-danger px-3 rounded-pill">حذف</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        async function toggleStock(id) {
+            try {
+                await fetch(`${API_URL}/${id}/toggle`, { method: 'PUT', headers: { 'Authorization': ADMIN_TOKEN } });
+                fetchInventory();
+            } catch(e) { alert("Error"); }
+        }
+
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            
+            const formData = new FormData(e.target);
+            const editId = document.getElementById('editId').value;
+            
+            if (!formData.get('name_en')) formData.set('name_en', formData.get('name_ar')); 
+            if (!formData.get('description_en')) formData.set('description_en', formData.get('description_ar')); 
+
+            const url = editId ? `${API_URL}/${editId}` : API_URL;
+            const method = editId ? 'PUT' : 'POST';
+
+            try {
+                const res = await fetch(url, { 
+                    method: method, 
+                    headers: { 'Authorization': ADMIN_TOKEN },
+                    body: formData 
+                });
+                if (res.ok) {
+                    modal.hide();
+                    fetchInventory();
+                } else { alert("فشل الحفظ"); }
+            } catch (err) { alert("خطأ في الخادم"); } 
+            finally { btn.disabled = false; }
+        });
+
+        window.openEditModal = function(id) {
+            const p = allProducts.find(x => x._id === id);
+            if(!p) return;
+
+            document.getElementById('modalTitle').innerText = "تعديل المنتج";
+            document.getElementById('editId').value = p._id;
+            document.getElementById('itemId').value = p.itemId || ''; 
+            document.getElementById('name_ar').value = p.name_ar || '';
+            document.getElementById('price').value = p.price;
+            document.getElementById('oldPrice').value = p.oldPrice || '';
+            document.getElementById('category').value = p.category;
+            document.getElementById('subCategory').value = p.subCategory || 'other'; 
+            document.getElementById('inStock').value = p.inStock;
+            document.getElementById('sizes').value = p.sizes ? p.sizes.join(', ') : '';
+            document.getElementById('colors').value = p.colors ? p.colors.join(', ') : ''; 
+            document.getElementById('description_ar').value = p.description_ar || '';
+            
+            document.getElementById('previewContainer').innerHTML = '<div class="alert alert-info w-100 text-center small">لتغيير الصور أو الأكواد، يرجى إعادة رفع الصور. الصور الحالية محفوظة إذا لم تقم برفع صور جديدة.</div>';
+            
+            modal.show();
+        }
+
+        window.openAddModal = function() {
+            document.getElementById('productForm').reset();
+            document.getElementById('modalTitle').innerText = "إضافة منتج جديد";
+            document.getElementById('editId').value = ""; 
+            document.getElementById('previewContainer').innerHTML = '<div class="text-muted small my-auto">الصور المختارة ستظهر هنا...</div>';
+            modal.show();
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm("حذف المنتج؟")) return;
+            try {
+                const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers: { 'Authorization': ADMIN_TOKEN } });
+                if (res.ok) fetchInventory();
+            } catch(e) {}
+        }
+
+        document.getElementById('imageFiles').addEventListener('change', function(e) {
+            const container = document.getElementById('previewContainer');
+            container.innerHTML = ''; 
+
+            if (this.files.length === 0) return;
+
+            Array.from(this.files).forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = "preview-wrapper d-flex flex-column gap-2 p-2 border rounded bg-light";
+                    wrapper.style.width = "120px";
+
+                    const img = document.createElement('img');
+                    img.src = ev.target.result;
+                    img.className = "rounded shadow-sm";
+                    img.style.width = "100%";
+                    img.style.height = "100px";
+                    img.style.objectFit = "cover";
+
+                    const input = document.createElement('input');
+                    input.type = "text";
+                    input.name = "imageCodes"; 
+                    input.className = "form-control form-control-sm text-center fw-bold";
+                    input.placeholder = "كود (مثلاً: Red)";
+                    input.required = true;
+
+                    wrapper.appendChild(img);
+                    wrapper.appendChild(input);
+                    container.appendChild(wrapper);
+                }
+                reader.readAsDataURL(file);
+            });
+        });
+
+        async function fetchSlidesAdmin() {
+            try {
+                const res = await fetch('/api/slides');
+                const slides = await res.json();
+                const container = document.getElementById('slideList');
+                container.innerHTML = slides.map(s => `
+                    <div class="position-relative border rounded p-1 shadow-sm bg-white" style="width: 220px;">
+                        <img src="${s.url}" class="w-100 rounded object-fit-cover" style="height: 120px;">
+                        <div class="small text-truncate mt-2 mb-1 text-center" dir="ltr">${s.link || 'بدون رابط'}</div>
+                        <button onclick="deleteSlide('${s._id}')" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 shadow">حذف</button>
+                    </div>
+                `).join('');
+            } catch(e) { console.error("Error fetching slides", e); }
+        }
+
+        fetchSlidesAdmin();
+
+        document.getElementById('slideForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('slideSaveBtn');
+            btn.disabled = true;
+            btn.innerText = "جاري الرفع...";
+            
+            const formData = new FormData(e.target);
+            try {
+                const res = await fetch('/api/slides', {
+                    method: 'POST',
+                    headers: { 'Authorization': ADMIN_TOKEN },
+                    body: formData
+                });
+                if(res.ok) {
+                    e.target.reset();
+                    fetchSlidesAdmin();
+                } else {
+                    alert("فشل الرفع");
+                }
+            } catch(e) { 
+                alert("خطأ في الاتصال"); 
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "رفع الصورة";
+            }
+        });
+
+        async function deleteSlide(id) {
+            if(!confirm("هل أنت متأكد من حذف هذه الصورة؟")) return;
+            await fetch(`/api/slides/${id}`, { method: 'DELETE', headers: { 'Authorization': ADMIN_TOKEN } });
+            fetchSlidesAdmin();
+        }
+    </script>
+</body>
+</html>
