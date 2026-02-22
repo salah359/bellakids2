@@ -1,641 +1,390 @@
-// public/js/app.js
-// THE MASTER SCRIPT: Handles Shop, Cart, API, Language, and UI.
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <link rel="icon" href="assets/images/logo.png" type="image/png">
+    <link rel="manifest" href="manifest.json">
 
-const DELIVERY_RATES = {
-    "wb": { price: 20, name_ar: "الضفة الغربية", name_en: "West Bank" },
-    "jlm": { price: 30, name_ar: "القدس", name_en: "Jerusalem" },
-    "48": { price: 70, name_ar: "الداخل 48", name_en: "Arab 48" }
-};
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+      }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#3498db">
+    <title>بيلا كيدز Bella Kids | Ramallah </title>
 
-const CONFIG = {
-    API_URL: '/api/products',
-    UPLOAD_PATH: '/uploads/',
-    CART_KEY: 'BELLA_KIDS_CART',
-    LANG_KEY: 'BELLA_LANGUAGE',
-    WHATSAPP_PHONE: '972598439251',
-    DEFAULT_DELIVERY: 20 
-};
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
 
-// Standard Ages for Filter
-const AGES = [
-    "0-3M", "3-6M", "6-9M", "9-12M", "12-18M", "18-24M",
-    "2Y", "3Y", "4Y", "5Y", "6Y", "7Y", "8Y", "9Y", "10Y", "11Y", "12Y"
-];
+    <style>
+        /* FIX APPLIED: I commented out the touch-action below. 
+           This was causing the "clunky" scroll feeling when touching the carousel.
+        */
+        /* #mainHeroCarousel, 
+        #mainHeroCarousel .carousel-inner, 
+        #mainHeroCarousel .carousel-item {
+            touch-action: pan-y !important; 
+        } 
+        */
 
-// NEW: Item Types for Filter
-const ITEM_TYPES = [
-    { key: "pajamas", en: "Pajamas", ar: "بيجامات" },
-    { key: "sportswear", en: "Sportswear", ar: "ملابس رياضية" },
-    { key: "formal", en: "Sportswear and formal wear", ar: "ملابس رياضية ورسمية" },
-    { key: "overalls", en: "Overalls", ar: "أفرهولات" },
-    { key: "pants", en: "Pants", ar: "بناطيل" },
-    { key: "shirts", en: "Shirts and blouses", ar: "قمصان وبلوزات" },
-    { key: "dresses", en: "Skirts and dresses", ar: "تنانير وفساتين" },
-    { key: "shoes", en: "Shoes", ar: "أحذية" },
-    { key: "bags", en: "Bags", ar: "حقائب" }
-];
-
-let state = {
-    products: [],      
-    cart: JSON.parse(localStorage.getItem(CONFIG.CART_KEY)) || [],
-    lang: localStorage.getItem(CONFIG.LANG_KEY) || 'ar', 
-    currentCategory: 'all',
-    selectedSize: null,
-    selectedColor: null, 
-    modalQty: 1 
-};
-
-// Translations
-const I18N = {
-    "en": {
-        "loading": "Loading...", "error": "Error.", "empty": "No items.",
-        "currency": "₪", "add_to_cart": "Add to Basket", "out_of_stock": "Sold Out",
-        "in_stock": "In Stock", "select_size": "Select size!", "select_color": "Select style!", "cart_empty": "Basket empty",
-        "subtotal": "Subtotal", "delivery": "Delivery", "total": "Total Order Amount",
-        "whatsapp_intro": "Hello Bella Kids! I would like to place an order for the following items:", 
-        "size": "Size", "color": "Style", "qty": "Quantity", "item_code": "Item Code",
-        "search_placeholder": "Search...", "sale": "SALE", "off": "OFF",
-        "variant_code": "Image Code",
-        "all_types": "All Types"
-    },
-    "ar": {
-        "loading": "جاري التحميل...", "error": "خطأ.", "empty": "لا توجد عناصر.",
-        "currency": "₪", "add_to_cart": "أضف للسلة", "out_of_stock": "نفد الكمية",
-        "in_stock": "متوفر", "select_size": "اختر المقاس!", "select_color": "اختر الموديل!", "cart_empty": "السلة فارغة",
-        "subtotal": "المجموع الفرعي", "delivery": "رسوم التوصيل", "total": "إجمالي قيمة الطلب",
-        "whatsapp_intro": "مرحباً بيلا كيدز، أود تقديم طلب للمنتجات التالية:", 
-        "size": "المقاس", "color": "الموديل", "qty": "الكمية", "item_code": "لون المنتج",
-        "search_placeholder": "بحث...", "sale": "خصم", "off": "توفير",
-        "variant_code": "لون المنتج",
-        "all_types": "كل الأنواع"
-    }
-};
-
-// HELPER: Handles both old strings and new object formats for images
-function resolveImage(imageInput) {
-    if (!imageInput) return 'assets/images/placeholder.png';
-    
-    // NEW: If input is an object (from new schema), extract the URL
-    const actualPath = (typeof imageInput === 'object' && imageInput.url) ? imageInput.url : imageInput;
-
-    if (actualPath.startsWith('http') || actualPath.startsWith('data:')) return actualPath;
-    return CONFIG.UPLOAD_PATH + (actualPath.startsWith('/') ? actualPath.substring(1) : actualPath);
-}
-
-// HELPER: Extract Variant ID safely
-function getVariantId(imageInput) {
-    if (typeof imageInput === 'object' && imageInput.variantId) {
-        return imageInput.variantId;
-    }
-    return ''; // No code available (or old data)
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    applyLanguageSettings();
-    populateAgeFilter();
-    populateTypeFilter(); // NEW: Populate the type dropdown
-
-    const path = window.location.pathname;
-    
-    // Set category based on page URL
-    if (path.includes('boys')) state.currentCategory = 'boys';
-    else if (path.includes('girls')) state.currentCategory = 'girls';
-    else if (path.includes('newborn')) state.currentCategory = 'newborn';
-    else if (path === '/' || path.includes('index')) {
-        state.currentCategory = 'all'; 
-        initBalloons();
-    }
-    
-    // Sync dropdown if exists
-    const catDropdown = document.getElementById('categoryFilter');
-    if(catDropdown && state.currentCategory !== 'all') catDropdown.value = state.currentCategory;
-
-    updateCartCounts();
-    renderSidebarCart(); 
-    fetchProducts();
-    
-    // FETCH THE CAROUSEL SLIDES
-    fetchHeroSlides(); 
-    
-    // Search listener
-    const searchInput = document.getElementById('productSearch');
-    if (searchInput) searchInput.addEventListener('keyup', () => filterGrid());
-    
-    if (typeof AOS !== 'undefined') AOS.init();
-});
-
-function populateAgeFilter() {
-    const select = document.getElementById('ageFilter');
-    if(!select) return;
-    AGES.forEach(age => {
-        const opt = document.createElement('option');
-        opt.value = age;
-        opt.innerText = age;
-        select.appendChild(opt);
-    });
-}
-
-// NEW: Populate Type Filter
-function populateTypeFilter() {
-    const select = document.getElementById('typeFilter');
-    if(!select) return;
-    
-    // Default option
-    const allOpt = document.createElement('option');
-    allOpt.value = "all";
-    allOpt.innerText = I18N[state.lang].all_types;
-    select.innerHTML = '';
-    select.appendChild(allOpt);
-
-    ITEM_TYPES.forEach(type => {
-        const opt = document.createElement('option');
-        opt.value = type.key;
-        opt.innerText = state.lang === 'ar' ? type.ar : type.en;
-        select.appendChild(opt);
-    });
-}
-
-async function fetchProducts() {
-    const grid = document.getElementById('product-grid');
-    if (!grid) return; 
-    try {
-        const res = await fetch(CONFIG.API_URL);
-        state.products = await res.json();
-        filterGrid(); 
-
-        // AUTO-OPEN PRODUCT LOGIC
-        const urlParams = new URLSearchParams(window.location.search);
-        const autoOpenId = urlParams.get('id');
+        .hero-banner-img {
+            /* Use content-visibility to improve rendering speed */
+            content-visibility: auto;
+            /* Ensure the image doesn't block the UI thread */
+            will-change: transform;
+        }
         
-        if (autoOpenId) {
-            setTimeout(() => {
-                openProductModal(autoOpenId);
-            }, 600);
+        html {
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            /* FIX APPLIED: Changed from -webkit-fill-available to auto to allow scrolling */
+            /* height: -webkit-fill-available; */ 
+            height: auto !important; 
+            min-height: 100%;
         }
 
-    } catch (err) { 
-        grid.innerHTML = `<div class="text-center py-5">Error loading</div>`; 
-    }
-}
-
-function filterGrid() {
-    const grid = document.getElementById('product-grid');
-    if (!grid) return;
-    
-    const searchInput = document.getElementById('productSearch');
-    const catDropdown = document.getElementById('categoryFilter');
-    const ageDropdown = document.getElementById('ageFilter');
-    const typeDropdown = document.getElementById('typeFilter');
-    
-    const term = searchInput ? searchInput.value.toLowerCase() : '';
-    const category = catDropdown ? catDropdown.value : (state.currentCategory || 'all');
-    const age = ageDropdown ? ageDropdown.value : 'all';
-    const type = typeDropdown ? typeDropdown.value : 'all';
-    
-    const filtered = state.products.filter(p => {
-        const matchesCategory = (category === 'all' || category === 'featured') ? true : (p.category && p.category.includes(category));
-        const nameMatch = (p.name_en||'').toLowerCase().includes(term) || (p.name_ar||'').toLowerCase().includes(term) || (p.itemId||'').toLowerCase().includes(term);
+        body { 
+            font-family: 'Cairo', sans-serif !important; 
+            /* FIX APPLIED: Removed max-width constraint to match boys.html behavior */
+            /* max-width: 100vw; */
+            width: 100%;
+            overflow-x: hidden; 
+            position: relative; /* Keep this for your absolute elements like balloons */
+            -webkit-overflow-scrolling: touch; /* Ensures smooth momentum scrolling on iOS */
+        }
         
-        let matchesAge = true;
-        if (age !== 'all') {
-            const productSizes = (p.sizes || []).map(s => s.trim().toUpperCase());
-            
-            // Logic for Range matching (e.g., 0-3M)
-            if (age === "0-3M") {
-                const range = ["0-3M", "1M", "2M", "3M", "NEWBORN"];
-                matchesAge = productSizes.some(s => range.includes(s));
-            } else if (age === "3-6M") {
-                const range = ["3-6M", "3M", "4M", "5M", "6M"];
-                matchesAge = productSizes.some(s => range.includes(s));
-            } else if (age === "6-9M") {
-                const range = ["6-9M", "6M", "7M", "8M", "9M"];
-                matchesAge = productSizes.some(s => range.includes(s));
-            } else if (age === "9-12M") {
-                const range = ["9-12M", "9M", "10M", "11M", "12M"];
-                matchesAge = productSizes.some(s => range.includes(s));
-            } else {
-                // Exact match for everything else (2Y, 3Y, etc.)
-                matchesAge = productSizes.includes(age.toUpperCase());
+        .hero-image-wrapper {
+            position: relative;
+            padding: 0; overflow: hidden; border-radius: 40px;
+            aspect-ratio: 1 / 1; max-width: 500px; margin: 0 auto;
+            border: 8px solid white;
+            box-shadow: 0 20px 40px rgba(162, 210, 255, 0.3);
+        }
+        .hero-animation {
+            width: 100%; height: 100%; object-fit: cover;
+            transform: scale(1.2);
+        }
+        .newborn-bg { background-color: #f3e5f5; }
+        .boys-bg { background-color: #e3f2fd; }
+        .girls-bg { background-color: #fce4ec; }
+        .footer-map-box {
+            height: 120px; background: #fff; transition: transform 0.3s ease; cursor: pointer;
+        }
+        .footer-map-box:hover { transform: scale(1.02); background-color: #f8fbff; }
+        .social-icon { width: 35px; height: 35px; fill: #3498db; transition: opacity 0.3s ease; }
+        .social-icon:hover { opacity: 0.7; }
+        .carousel-item img { height: 450px; object-fit: contain; background-color: #f8f9fa; }
+        
+        /* Thumbnails and Quantity Styles */
+        .thumb-img { cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+        .thumb-img:hover, .thumb-img.active-thumb { border-color: #3498db; transform: scale(1.05); }
+        .qty-input { width: 50px; text-align: center; border: 1px solid #dee2e6; }
+
+        /* NEW: Responsive Carousel Image */
+        .hero-banner-img {
+            width: 100%;
+            height: 250px; /* Mobile height */
+            object-fit: contain; /* Ensures the whole image fits without cropping */
+            background-color: #f8f9fa; /* Fills empty space if image ratio doesn't perfectly match */
+        }
+        @media (min-width: 992px) {
+            .hero-banner-img {
+                height: 450px; /* Desktop height */
             }
         }
 
-        let matchesType = true;
-        if (type !== 'all') {
-            matchesType = p.subCategory === type;
+        /* ADDED: Mobile optimization to ensure grid elements do not break out of screen width */
+        @media (max-width: 768px) {
+            .display-3 { font-size: 2.2rem !important; }
+            .container { overflow-x: hidden; }
+            .filter-dropdown { width: 100%; max-width: 100% !important; margin-bottom: 8px; }
+            .d-flex.gap-2 { flex-wrap: wrap; width: 100%; }
         }
+    </style>
+</head>
+<body>
 
-        return matchesCategory && nameMatch && matchesAge && matchesType;
-    });
-    renderProducts(filtered, grid);
-}
+    <div class="bg-primary text-white text-center py-2 small fw-bold">
+        ✨ توصيل سريع في جميع المناطق! ✨
+    </div>
 
-function filterSearch() { filterGrid(); }
+    <nav class="navbar navbar-expand-lg sticky-top glass-nav">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/home">
+                <img src="assets/images/logo.png" alt="Bella Kids Logo" class="nav-logo">
+            </a>
+            
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-function renderProducts(products, container) {
-    container.innerHTML = '';
-    const t = I18N[state.lang];
-    if (products.length === 0) { container.innerHTML = `<h3 class="text-center py-5">${t.empty}</h3>`; return; }
-
-    products.forEach(p => {
-        const name = state.lang === 'ar' ? (p.name_ar || p.name) : (p.name_en || p.name);
-        const firstImg = (p.images && p.images.length > 0) ? p.images[0] : null;
-        const imageSrc = resolveImage(firstImg);
-        
-        const isSoldOut = !p.inStock;
-        const isSale = p.oldPrice && p.oldPrice > p.price;
-        let priceHtml = `<div class="text-primary fw-bold mb-2">${t.currency}${p.price}</div>`;
-        let saleBadge = '';
-
-        if (isSale) {
-            const percent = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
-            priceHtml = `<div class="mb-2"><del class="text-muted small">${t.currency}${p.oldPrice}</del><span class="text-danger fw-bold ms-1">${t.currency}${p.price}</span></div>`;
-            saleBadge = `<span class="badge bg-danger position-absolute top-0 end-0 m-3 shadow-sm" style="font-size: 11px; padding: 5px 10px; border-radius: 6px;">${t.sale} ${percent}% ${t.off}</span>`;
-        }
-
-        const badgeStyle = `position: absolute !important; top: 10px !important; left: 10px !important; right: auto !important; bottom: auto !important; height: auto !important; width: auto !important; font-size: 11px !important; padding: 5px 12px !important; border-radius: 6px !important; z-index: 50 !important; box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;`;
-        const stockBadge = isSoldOut ? `<span class="badge bg-danger" style="${badgeStyle}">${t.out_of_stock}</span>` : `<span class="badge bg-success" style="${badgeStyle}">${t.in_stock}</span>`;
-        const btnState = isSoldOut ? 'disabled' : '';
-        const btnClass = isSoldOut ? 'btn-secondary' : 'btn-outline-dark';
-        const cardOpacity = isSoldOut ? 'opacity: 0.75;' : '';
-
-        const productUrl = `${window.location.origin}${window.location.pathname}?id=${p._id}`;
-
-        container.innerHTML += `
-        <div class="col-6 col-md-4 col-lg-3 mb-4" data-aos="fade-up">
-            <div class="card product-card h-100 border-0 shadow-sm" style="${cardOpacity}" onclick="openProductModal('${p._id}')">
-                <button class="share-btn" onclick="event.stopPropagation(); shareProduct('${name.replace(/'/g, "\\'")}', '${productUrl}')">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/>
-                    </svg>
-                </button>
-                <div class="position-relative overflow-hidden ratio ratio-1x1 rounded-3">
-                    ${stockBadge} ${saleBadge}
-                    <img src="${imageSrc}" class="img-fluid object-fit-cover w-100 h-100 product-img-hover">
-                </div>
-                <div class="card-body text-center p-3">
-                    <h6 class="fw-bold text-dark mb-1 text-truncate">${name}</h6>
-                    ${priceHtml}
-                    <button class="btn ${btnClass} rounded-pill w-100 btn-sm" ${btnState}>${isSoldOut ? t.out_of_stock : t.add_to_cart}</button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item"><a class="nav-link" href="/home">الرئيسية</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/boys">الأولاد</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/girls">البنات</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/newborn">المواليد</a></li>
+                    <li class="nav-item"><a class="nav-link text-danger fw-bold" href="/offers">العروض 🔥</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/about">من نحن</a></li>
+                </ul>
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-primary rounded-pill px-4 position-relative" data-bs-toggle="offcanvas" data-bs-target="#cartSidebar">
+                        السلة <span class="badge bg-white text-primary cart-count ms-1">0</span>
+                    </button>
                 </div>
             </div>
-        </div>`;
-    });
-}
-
-function openProductModal(id) {
-    const p = state.products.find(x => x._id === id);
-    if (!p) return;
-    state.selectedSize = null;
-    state.modalQty = 1; 
-    
-    const t = I18N[state.lang];
-    const name = state.lang === 'ar' ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar);
-    const desc = state.lang === 'ar' ? (p.description_ar || p.description_en) : (p.description_en || p.description_ar);
-
-    const images = (p.images && p.images.length) ? p.images : ['placeholder.png'];
-    
-    let carouselItems = images.map((img, idx) => `
-        <div class="carousel-item ${idx === 0 ? 'active' : ''}" data-index="${idx}">
-            <img src="${resolveImage(img)}" class="d-block w-100 object-fit-cover" style="height: 400px;">
         </div>
-    `).join('');
+    </nav>
 
-    const carouselHtml = `
-        <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
-            <div class="carousel-inner rounded-start">${carouselItems}</div>
-            ${images.length > 1 ? `
-                <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon bg-dark rounded-circle" aria-hidden="true"></span></button>
-                <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next"><span class="carousel-control-next-icon bg-dark rounded-circle" aria-hidden="true"></span></button>
-            ` : ''}
-        </div>
-    `;
-
-    const container = document.getElementById('modalImageContainer');
-    if(container) container.innerHTML = carouselHtml;
-
-    document.getElementById('popupName').innerText = name;
-    document.getElementById('popupDesc').innerText = desc || '';
-    const isSale = p.oldPrice && p.oldPrice > p.price;
-    document.getElementById('popupPrice').innerHTML = isSale 
-        ? `<del class="text-muted small">${t.currency}${p.oldPrice}</del> <span class="text-danger fw-bold fs-4">${t.currency}${p.price}</span>`
-        : t.currency + p.price;
-
-    const sizes = (p.sizes && p.sizes.length) ? p.sizes : ['One Size'];
-    document.getElementById('sizeSelector').innerHTML = sizes.map(s => `<button class="btn btn-outline-secondary btn-sm m-1" onclick="selectSize(this, '${s}')">${s}</button>`).join('');
-
-    // Thumbnails
-    const thumbContainer = document.getElementById('thumbnailsSelector');
-    if (thumbContainer) {
-        if (images.length > 1) {
-            thumbContainer.parentElement.classList.remove('d-none');
-            thumbContainer.innerHTML = images.map((img, idx) => `
-                <img src="${resolveImage(img)}" class="thumb-img rounded shadow-sm" width="50" height="50" style="object-fit: cover;" onclick="goToSlide(${idx}, this)">
-            `).join('');
-        } else { thumbContainer.parentElement.classList.add('d-none'); }
-    }
+    <header class="hero-section d-flex align-items-center">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-5 text-center text-lg-start" data-aos="fade-left">
+                    <h1 class="display-3 fw-bold text-dark mb-4">أناقة طفلك تبدأ من هنا.</h1>
+                    <p class="lead mb-5 text-muted">أزياء أطفال بجودة عالية للأولاد والبنات في رام الله. اكتشف سحر الموضة لأطفالك.</p>
+                    <div class="d-flex gap-3 justify-content-center justify-content-lg-start">
+    <a href="#featured" class="btn btn-primary btn-lg rounded-pill px-5 shadow-sm">تسوق الآن</a>
     
-    updateModalQtyUI();
-
-    const btn = document.getElementById('modalAddToCart');
-
-    if (!p.inStock) {
-        btn.innerText = t.out_of_stock;
-        btn.disabled = true;
-        btn.classList.replace('btn-primary', 'btn-secondary');
-        btn.onclick = null; 
-    } else {
-        btn.innerText = t.add_to_cart;
-        btn.disabled = false;
-        btn.classList.replace('btn-secondary', 'btn-primary');
-        
-        btn.onclick = () => {
-            if(!state.selectedSize) { alert(t.select_size); return; }
-            
-            const activeItem = document.querySelector('#productCarousel .carousel-item.active');
-            const activeIndex = activeItem ? parseInt(activeItem.getAttribute('data-index')) : 0;
-            
-            const selectedImgData = images[activeIndex];
-            const imgUrl = resolveImage(selectedImgData);
-            const variantId = getVariantId(selectedImgData);
-
-            addToCart(p, state.selectedSize, imgUrl, state.modalQty, variantId);
-            bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
-        };
-    }
-
-    new bootstrap.Modal(document.getElementById('productModal')).show();
-}
-
-function selectSize(el, s) {
-    document.querySelectorAll('#sizeSelector .btn').forEach(b => b.classList.replace('btn-dark', 'btn-outline-secondary'));
-    el.classList.replace('btn-outline-secondary', 'btn-dark');
-    state.selectedSize = s;
-}
-
-function goToSlide(index, el) {
-    const carouselEl = document.getElementById('productCarousel');
-    const bsCarousel = bootstrap.Carousel.getOrCreateInstance(carouselEl);
-    bsCarousel.to(index);
-    document.querySelectorAll('.thumb-img').forEach(img => img.classList.remove('active-thumb', 'border-primary'));
-    el.classList.add('active-thumb', 'border-primary');
-}
-
-function adjustModalQty(change) {
-    state.modalQty += change;
-    if (state.modalQty < 1) state.modalQty = 1;
-    updateModalQtyUI();
-}
-
-function updateModalQtyUI() { const input = document.getElementById('modalQty'); if(input) input.value = state.modalQty; }
-
-function addToCart(p, size, imgUrl, qty, variantId) {
-    if (!p.inStock) return;
-
-    const name = state.lang === 'ar' ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar);
-    const exist = state.cart.find(x => x.id === p._id && x.size === size && x.img === imgUrl);
-    
-    if(exist) {
-        exist.qty += qty; 
-    } else {
-        state.cart.push({ 
-            id: p._id, 
-            itemId: p.itemId, 
-            name, 
-            price: p.price, 
-            img: imgUrl, 
-            size, 
-            qty, 
-            variantId: variantId || '' 
-        });
-    }
-    saveCart();
-}
-
-function removeFromCart(i) { state.cart.splice(i, 1); saveCart(); }
-
-function saveCart() { 
-    localStorage.setItem(CONFIG.CART_KEY, JSON.stringify(state.cart)); 
-    updateCartCounts(); 
-    renderSidebarCart(); 
-}
-
-function updateCartCounts() { 
-    const c = state.cart.reduce((a, b) => a + b.qty, 0); 
-    document.querySelectorAll('.cart-count').forEach(e => e.innerText = c); 
-}
-
-function renderSidebarCart() {
-    const div = document.getElementById('cartItems');
-    if(!div) return;
-    div.innerHTML = '';
-    const t = I18N[state.lang];
-    if(state.cart.length === 0) { 
-        div.innerHTML = `<div class="text-center py-4 text-muted">${t.cart_empty}</div>`; 
-        updateCartTotalUI();
-        return; 
-    }
-    state.cart.forEach((x, i) => {
-        const codeHtml = x.variantId ? `<br><span class="text-success small fw-bold">${t.variant_code}: ${x.variantId}</span>` : '';
-        
-        div.innerHTML += `
-            <div class="d-flex align-items-center mb-3">
-                <img src="${x.img}" width="50" height="50" class="rounded object-fit-cover mx-2">
-                <div class="flex-grow-1">
-                    <div class="fw-bold small">${x.name}</div>
-                    <div class="text-muted small">
-                        ${t.size}: ${x.size} | ${t.currency}${x.price} x ${x.qty}
-                        ${codeHtml}
+    <a href="/offers" class="btn btn-danger btn-lg rounded-pill px-5 shadow-sm">العروض 🔥</a>
+</div>
+                </div>
+                <div class="col-lg-7 mt-5 mt-lg-0 text-center" data-aos="zoom-in">
+                    <div class="hero-image-wrapper">
+                        <img src="assets/images/hero-kids.png" class="img-fluid hero-animation floating-animation" alt="أطفال بيلا كيدز">
                     </div>
                 </div>
-                <button onclick="removeFromCart(${i})" class="btn btn-sm text-danger">×</button>
-            </div>`;
-    });
-    updateCartTotalUI();
-}
+            </div>
+        </div>
+    </header>
 
-function updateCartTotalUI() {
-    const t = I18N[state.lang];
-    const deliverySelect = document.getElementById('deliveryRegion');
-    const feeDisplay = document.getElementById('deliveryFeeDisplay');
-    const totalDisplay = document.getElementById('cartTotal');
-    
-    let regionKey = deliverySelect ? deliverySelect.value : 'wb';
-    let fee = DELIVERY_RATES[regionKey] ? DELIVERY_RATES[regionKey].price : 20;
-    
-    let sub = state.cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-    let total = sub > 0 ? sub + fee : 0;
-
-    if(feeDisplay) feeDisplay.innerText = `${t.currency}${fee.toFixed(2)}`;
-    if(totalDisplay) totalDisplay.innerText = `${t.currency}${total.toFixed(2)}`;
-}
-
-function sendToWhatsApp() {
-    if (state.cart.length === 0) return;
-    const t = I18N[state.lang];
-    const deliverySelect = document.getElementById('deliveryRegion');
-    const regionKey = deliverySelect ? deliverySelect.value : 'wb';
-    const regionData = DELIVERY_RATES[regionKey] || DELIVERY_RATES['wb'];
-    const regionName = state.lang === 'ar' ? regionData.name_ar : regionData.name_en;
-    const deliveryCost = regionData.price;
-
-    let msg = `*${t.whatsapp_intro}*\n\n`;
-    let subtotal = 0;
-
-    state.cart.forEach((item, index) => {
-        const itemTotal = item.price * item.qty;
-        subtotal += itemTotal;
-        
-        msg += `*${index + 1}. ${item.name}*\n`;
-        if(item.itemId) msg += `- ${t.item_code}: ${item.itemId}\n`;
-        msg += `- ${t.size}: ${item.size}\n`;
-        if(item.variantId) msg += `- ${t.variant_code}: ${item.variantId}\n`;
-        msg += `- ${t.qty}: ${item.qty}\n`;
-        const productLink = `${window.location.origin}/home?id=${item.id}`;
-msg += `- Link: ${productLink}\n\n`;
-    });
-
-    const total = subtotal + deliveryCost;
-    msg += `--------------------------\n`;
-    msg += `*${t.subtotal}:* ${t.currency}${subtotal}\n`;
-    msg += `*${t.delivery} (${regionName}):* ${t.currency}${deliveryCost}\n`;
-    msg += `*${t.total}: ${t.currency}${total}*\n`;
-    msg += `--------------------------\n\n`;
-    msg += `Thank you for shopping with Bella Kids!`;
-
-    window.open(`https://wa.me/${CONFIG.WHATSAPP_PHONE}?text=${encodeURIComponent(msg)}`, '_blank');
-}
-
-function toggleLanguage() {
-    state.lang = state.lang === 'en' ? 'ar' : 'en';
-    localStorage.setItem(CONFIG.LANG_KEY, state.lang);
-    location.reload();
-}
-
-function applyLanguageSettings() {
-    document.documentElement.lang = state.lang;
-    document.documentElement.dir = state.lang === 'ar' ? 'rtl' : 'ltr';
-    document.querySelectorAll('[data-i18n-key]').forEach(el => {
-        const k = el.getAttribute('data-i18n-key');
-        if(I18N[state.lang][k]) el.innerText = I18N[state.lang][k];
-    });
-}
-
-function initBalloons() {
-    const container = document.getElementById('balloon-container'); 
-    if (!container) return;
-    const colors = ['#FFC8DD', '#FFAFCC', '#BDE0FE', '#A2D2FF'];
-    for(let i=0; i<15; i++) {
-        let b = document.createElement('div');
-        b.className = 'balloon';
-        b.style.background = colors[Math.floor(Math.random()*colors.length)];
-        b.style.left = Math.random()*100 + '%';
-        b.style.animationDuration = (Math.random()*5 + 5) + 's';
-        b.style.animationDelay = Math.random()*5 + 's';
-        container.appendChild(b);
-    }
-}
-
-async function getImageData(url) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = 'Anonymous'; 
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            resolve(canvas.toDataURL('image/jpeg'));
-        };
-        img.onerror = reject;
-        img.src = url;
-    });
-}
-
-async function generatePDFReceipt() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const t = I18N[state.lang];
-    let y = 45;
-    let subtotal = 0;
-
-    doc.setFontSize(22);
-    doc.text("Bella Kids - Order Receipt", 105, 20, { align: "center" });
-    doc.line(10, 35, 200, 35);
-
-    for (const item of state.cart) {
-        subtotal += (item.price * item.qty);
-        try {
-            const imgData = await getImageData(item.img);
-            doc.addImage(imgData, 'JPEG', 10, y - 5, 20, 20); 
-        } catch (e) { console.error("Image load failed", e); }
-
-        doc.setFont(undefined, 'bold');
-        doc.text(`${item.name}`, 35, y);
-        doc.setFont(undefined, 'normal');
-        doc.text(`${t.qty}: ${item.qty} | ${t.size}: ${item.size} | ${t.currency}${item.price}`, 35, y + 7);
-        if(item.variantId) doc.text(`${t.variant_code}: ${item.variantId}`, 35, y + 14);
-
-        y += 30;
-        if (y > 270) { doc.addPage(); y = 20; }
-    }
-
-    const deliverySelect = document.getElementById('deliveryRegion');
-    const fee = DELIVERY_RATES[deliverySelect?.value || 'wb'].price;
-    doc.text(`Total: ${t.currency}${subtotal + fee}`, 170, y, { align: "right" });
-    doc.save(`BellaKids_Order.pdf`);
-}
-
-window.shareProduct = function(name, url) {
-    if (navigator.share) {
-        navigator.share({
-            title: name,
-            text: `Check out this product from Bella Kids: ${name}`,
-            url: url,
-        }).catch(console.error);
-    } else {
-        navigator.clipboard.writeText(url);
-        alert('Link copied to clipboard!');
-    }
-};
-
-// MODIFIED: Replaced inline style with the responsive .hero-banner-img class
-async function fetchHeroSlides() {
-    const container = document.getElementById('carouselInner');
-    if (!container) return; 
-
-    try {
-        const res = await fetch('/api/slides');
-        const slides = await res.json();
-        
-        if (slides.length > 0) {
-            container.innerHTML = slides.map((s, idx) => `
-                <div class="carousel-item ${idx === 0 ? 'active' : ''}">
-                    <a href="${s.link && s.link !== '#' ? s.link : 'javascript:void(0)'}">
-                        <img src="${s.url}" class="d-block w-100 hero-banner-img" alt="عروض بيلا كيدز">
-                    </a>
+    <section class="container py-5">
+        <div class="row g-4">
+            <div class="col-md-4" data-aos="fade-up">
+                <div class="cat-card newborn-bg p-5 rounded-5 shadow-sm position-relative overflow-hidden">
+                    <h2 class="fw-bold">المواليد</h2>
+                    <p>لمسة ناعمة للقادمين الجدد.</p>
+                    <a href="/newborn" class="text-dark fw-bold text-decoration-none stretched-link">اكتشف ←</a>
                 </div>
-            `).join('');
-        } else {
-            // Hide the entire row (Carousel + Text) if no slides exist
-            const carouselRow = document.getElementById('mainHeroCarousel').closest('.row');
-            if (carouselRow) carouselRow.style.display = 'none';
-        }
-    } catch (err) {
-        console.error("Failed to load slides", err);
-        const carouselRow = document.getElementById('mainHeroCarousel').closest('.row');
-        if (carouselRow) carouselRow.style.display = 'none';
-    }
-}
-// Inside fetchHeroSlides in app.js
-container.innerHTML = slides.map((s, idx) => `
-    <div class="carousel-item ${idx === 0 ? 'active' : ''}">
-        <a href="${s.link && s.link !== '#' ? s.link : 'javascript:void(0)'}">
-            <img src="${s.url}" 
-                 class="d-block w-100 hero-banner-img" 
-                 alt="عروض بيلا كيدز"
-                 ${idx === 0 ? 'fetchpriority="high"' : ''} 
-                 loading="eager">
-        </a>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="cat-card boys-bg p-5 rounded-5 shadow-sm position-relative overflow-hidden">
+                    <h2 class="fw-bold">الأولاد</h2>
+                    <p>أطقم عصرية وأنيقة.</p>
+                    <a href="/boys" class="text-dark fw-bold text-decoration-none stretched-link">اكتشف ←</a>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="cat-card girls-bg p-5 rounded-5 shadow-sm position-relative overflow-hidden">
+                    <h2 class="fw-bold">البنات</h2>
+                    <p>فساتين لكل المناسبات.</p>
+                    <a href="/girls" class="text-dark fw-bold text-decoration-none stretched-link">اكتشف ←</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main class="container py-5" id="featured">
+        
+        <div class="row mb-5 g-4 align-items-center">
+            <div class="col-lg-4 text-center text-lg-start" data-aos="fade-right">
+                <div class="p-4 bg-white rounded-5 shadow-sm border h-100 d-flex flex-column justify-content-center">
+                    <h2 class="fw-bold text-primary mb-3">أحدث العروض</h2>
+                    <p class="text-muted lead mb-4">اكتشفوا تشكيلتنا الجديدة والحصرية بأسعار منافسة جداً. عروضنا متجددة دائماً لتناسب أناقة أطفالكم.</p>
+                    <a href="#featured" class="btn btn-outline-primary rounded-pill py-2 px-4 fw-bold">تصفح المنتجات</a>
+                </div>
+            </div>
+
+            <div class="col-lg-8" data-aos="fade-left">
+                <div id="mainHeroCarousel" class="carousel slide shadow-sm rounded-5 overflow-hidden border" data-bs-ride="carousel" data-bs-interval="3000">
+                    <div class="carousel-inner" id="carouselInner">
+                        <div class="carousel-item active">
+                            <div class="bg-light d-flex flex-column align-items-center justify-content-center text-center p-5 hero-banner-img">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <p class="mt-3 text-muted fw-bold">جاري تحميل العروض...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="carousel-control-prev" type="button" data-bs-target="#mainHeroCarousel" data-bs-slide="prev" style="width: 8%;">
+                        <span class="carousel-control-prev-icon bg-dark rounded-circle p-2 shadow" aria-hidden="true"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#mainHeroCarousel" data-bs-slide="next" style="width: 8%;">
+                        <span class="carousel-control-next-icon bg-dark rounded-circle p-2 shadow" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-12 mt-4">
+                <p></p>
+                <h2 class="fw-bold mb-4 text-center">وصل حديثاً</h2>
+            </div>
+            
+        </div>
+        <div class="row mb-5 justify-content-center">
+            <div class="col-md-10 text-center">
+                <div class="input-group shadow-sm rounded-pill overflow-hidden border mb-3">
+                    <span class="input-group-text bg-white border-0 ps-4">🔍</span>
+                    <input type="text" id="productSearch" class="form-control border-0 py-3 ps-3" placeholder="ابحث عن منتج..." onkeyup="filterSearch()">
+                </div>
+
+                <div class="row justify-content-center g-2">
+    <div class="col-4 col-md-3">
+        <select class="form-select border shadow-sm py-2 rounded-pill bg-light w-100" id="categoryFilter" onchange="filterSearch()">
+            <option value="all">كل الأقسام</option>
+            <option value="boys">الأولاد</option>
+            <option value="girls">البنات</option>
+            <option value="newborn">المواليد</option>
+        </select>
     </div>
-`).join('');
+
+    <div class="col-4 col-md-3">
+        <select class="form-select border shadow-sm py-2 rounded-pill bg-white w-100" id="ageFilter" onchange="filterSearch()">
+            <option value="all">كل الأعمار</option>
+        </select>
+    </div>
+
+    <div class="col-4 col-md-3">
+        <select class="form-select border shadow-sm py-2 rounded-pill bg-white w-100" id="typeFilter" onchange="filterSearch()">
+            <option value="all">كل الأنواع</option>
+        </select>
+    </div>
+</div>
+            </div>
+        </div>
+
+        <div class="row g-4" id="product-grid"></div>
+    </main>
+
+    <div class="offcanvas offcanvas-end border-0 shadow" tabindex="-1" id="cartSidebar">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="fw-bold m-0">سلة المشتريات</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body" id="cartItems"></div>
+        <div class="p-4 border-top bg-light">
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-muted">منطقة التوصيل:</label>
+                <select class="form-select form-select-sm" id="deliveryRegion" onchange="updateCartTotalUI()">
+                    <option value="wb" selected>الضفة الغربية (20₪)</option>
+                    <option value="jlm">القدس (30₪)</option>
+                    <option value="48">الداخل 48 (70₪)</option>
+                </select>
+            </div>
+            
+            <div class="d-flex justify-content-between mb-3">
+                <span class="text-muted small">رسوم التوصيل:</span>
+                <span id="deliveryFeeDisplay" class="small fw-bold">₪20.00</span>
+            </div>
+            <div class="d-flex justify-content-between mb-3 pt-2 border-top">
+                <span class="fw-bold h5">المجموع:</span>
+                <span id="cartTotal" class="fw-bold text-primary h5">₪0.00</span>
+            </div>
+            <button class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-sm" onclick="sendToWhatsApp()">إرسال الطلب عبر واتساب</button>
+        </div>
+    </div>
+
+    <button class="cart-float" data-bs-toggle="offcanvas" data-bs-target="#cartSidebar">
+        🛍️ <span class="badge bg-white text-primary cart-count ms-1">0</span>
+    </button>
+
+    <a href="https://wa.me/972598439251" class="whatsapp-float" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA">
+    </a>
+
+    <footer class="bg-light py-5 mt-5 border-top">
+        <div class="container">
+            <div class="row g-4 align-items-center">
+                <div class="col-md-4 text-center text-md-start">
+                    <img src="assets/images/logo.png" alt="Bella Kids Logo" height="70" class="mb-3">
+                    <p class="text-muted small">ملابس أطفال بجودة ممتازة لنجومكم الصغار. اكتشفوا سحر الموضة في رام الله.</p>
+                </div>
+
+                <div class="col-md-4 text-center">
+                    <h6 class="fw-bold mb-3">زوروا متجرنا</h6>
+                    <a href="https://www.google.com/maps/search/?api=1&query=W674%2BFX5%2C+Al-Bireh" target="_blank" class="text-decoration-none">
+                        <div class="footer-map-box rounded-4 border d-flex flex-column align-items-center justify-content-center shadow-sm mb-2" style="border-style: dashed !important; border-width: 2px !important; border-color: var(--bella-blue) !important;">
+                            <div class="text-primary mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16">
+                                    <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/>
+                                </svg>
+                            </div>
+                            <span class="fw-bold text-dark">📍 فتح في خرائط جوجل</span>
+                        </div>
+                    </a>
+                    <p class="text-muted small mb-0">البيرة، رام الله (W674+FX5)</p>
+                </div>
+
+                <div class="col-md-4 text-center text-md-end social-column">
+                    <h6 class="fw-bold mb-3">تواصل معنا</h6>
+                    <div class="social-icon-wrapper d-flex gap-4">
+                        <a href="https://www.facebook.com/1BellaKids" target="_blank" class="text-decoration-none">
+                            <svg class="social-icon" viewBox="0 0 24 24"><path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z"/></svg>
+                        </a>
+                        <a href="https://www.instagram.com/bellakids.ps/" target="_blank" class="text-decoration-none">
+                            <svg class="social-icon" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                        </a>
+                    </div>
+                    <p class="text-muted small mt-3 mb-0">© 2025 Bella Kids. جميع الحقوق محفوظة.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <div id="balloon-container"></div>
+    
+    <div id="animation-container" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:99999; overflow:hidden;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>AOS.init({ duration: 1000, once: true });</script>
+    <script src="js/app.js"></script>
+
+    <div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 overflow-hidden">
+                <div class="row g-0">
+                    <div class="col-md-6 bg-light" id="modalImageContainer">
+                        </div>
+                    <div class="col-md-6">
+                        <div class="modal-header border-0 pb-0">
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4 pt-2">
+                            <h4 id="popupName" class="fw-bold mb-2"></h4>
+                            <h5 id="popupPrice" class="text-primary fw-bold mb-3"></h5>
+                            <p id="popupDesc" class="text-muted small mb-4"></p>
+                            
+                            <div class="mb-3">
+                                <label class="small fw-bold text-uppercase text-muted mb-2" data-i18n-key="size">اختر المقاس</label>
+                                <div id="sizeSelector" class="d-flex flex-wrap gap-2"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="small fw-bold text-uppercase text-muted mb-2" data-i18n-key="color">الصور</label>
+                                <div id="thumbnailsSelector" class="d-flex flex-wrap gap-2 align-items-center"></div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="small fw-bold text-uppercase text-muted mb-2" data-i18n-key="qty">الكمية</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="adjustModalQty(-1)">-</button>
+                                    <input type="text" id="modalQty" class="form-control text-center fw-bold" value="1" style="width: 60px;" readonly>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="adjustModalQty(1)">+</button>
+                                </div>
+                            </div>
+
+                            <button id="modalAddToCart" class="btn btn-primary w-100 rounded-pill py-3 fw-bold">
+                                أضف إلى السلة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
