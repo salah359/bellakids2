@@ -185,12 +185,12 @@ function filterGrid() {
     const searchInput = document.getElementById('productSearch');
     const catDropdown = document.getElementById('categoryFilter');
     const ageDropdown = document.getElementById('ageFilter');
-    const typeDropdown = document.getElementById('typeFilter'); // NEW
+    const typeDropdown = document.getElementById('typeFilter');
     
     const term = searchInput ? searchInput.value.toLowerCase() : '';
     const category = catDropdown ? catDropdown.value : (state.currentCategory || 'all');
     const age = ageDropdown ? ageDropdown.value : 'all';
-    const type = typeDropdown ? typeDropdown.value : 'all'; // NEW
+    const type = typeDropdown ? typeDropdown.value : 'all';
     
     const filtered = state.products.filter(p => {
         const matchesCategory = (category === 'all' || category === 'featured') ? true : (p.category && p.category.includes(category));
@@ -199,10 +199,26 @@ function filterGrid() {
         let matchesAge = true;
         if (age !== 'all') {
             const productSizes = (p.sizes || []).map(s => s.trim().toUpperCase());
-            matchesAge = productSizes.includes(age.toUpperCase());
+            
+            // Logic for Range matching (e.g., 0-3M)
+            if (age === "0-3M") {
+                const range = ["0-3M", "1M", "2M", "3M", "NEWBORN"];
+                matchesAge = productSizes.some(s => range.includes(s));
+            } else if (age === "3-6M") {
+                const range = ["3-6M", "3M", "4M", "5M", "6M"];
+                matchesAge = productSizes.some(s => range.includes(s));
+            } else if (age === "6-9M") {
+                const range = ["6-9M", "6M", "7M", "8M", "9M"];
+                matchesAge = productSizes.some(s => range.includes(s));
+            } else if (age === "9-12M") {
+                const range = ["9-12M", "9M", "10M", "11M", "12M"];
+                matchesAge = productSizes.some(s => range.includes(s));
+            } else {
+                // Exact match for everything else (2Y, 3Y, etc.)
+                matchesAge = productSizes.includes(age.toUpperCase());
+            }
         }
 
-        // NEW: Filter by subCategory/type
         let matchesType = true;
         if (type !== 'all') {
             matchesType = p.subCategory === type;
