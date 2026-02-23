@@ -61,6 +61,7 @@ const ProductSchema = new mongoose.Schema({
     category: { type: String, default: 'all' },
     subCategory: { type: String, default: 'other' },
     sizes: [String],
+    outOfStockSizes: [String], // NEW: Specific ages/sizes out of stock
     colors: [String],
     description_en: String,
     description_ar: String,
@@ -197,9 +198,10 @@ app.get('/api/products', async (req, res) => {
 
 app.post('/api/products', requireAuth, upload.array('images', 10), async (req, res) => {
     try {
-        const { itemId, name_en, name_ar, price, oldPrice, category, subCategory, sizes, colors, description_en, description_ar, inStock, isEid, imageCodes } = req.body;
+        const { itemId, name_en, name_ar, price, oldPrice, category, subCategory, sizes, outOfStockSizes, colors, description_en, description_ar, inStock, isEid, imageCodes } = req.body;
         
         let sizesArray = sizes ? sizes.split(',').map(s => s.trim()).filter(s => s !== '') : [];
+        let oosArray = outOfStockSizes ? outOfStockSizes.split(',').map(s => s.trim()).filter(s => s !== '') : []; // NEW
         let colorsArray = colors ? colors.split(',').map(c => c.trim()).filter(c => c !== '') : [];
 
         let codes = imageCodes || [];
@@ -214,6 +216,7 @@ app.post('/api/products', requireAuth, upload.array('images', 10), async (req, r
             oldPrice: oldPrice ? Number(oldPrice) : null,
             category, subCategory,
             sizes: sizesArray,
+            outOfStockSizes: oosArray, // NEW
             colors: colorsArray,
             description_en, description_ar,
             images: imageObjects, 
@@ -231,7 +234,7 @@ app.post('/api/products', requireAuth, upload.array('images', 10), async (req, r
 
 app.put('/api/products/:id', requireAuth, upload.array('images', 10), async (req, res) => {
     try {
-        const { itemId, name_en, name_ar, price, oldPrice, category, subCategory, sizes, colors, description_en, description_ar, inStock, isEid, imageCodes } = req.body;
+        const { itemId, name_en, name_ar, price, oldPrice, category, subCategory, sizes, outOfStockSizes, colors, description_en, description_ar, inStock, isEid, imageCodes } = req.body;
         const product = await Product.findById(req.params.id);
         if (!product) return res.status(404).json({ error: "Not found" });
         
@@ -248,6 +251,7 @@ app.put('/api/products/:id', requireAuth, upload.array('images', 10), async (req
         product.isEid = isEid === 'true' || isEid === true; // NEW
         
         if (sizes) product.sizes = sizes.split(',').map(s => s.trim()).filter(s => s !== '');
+        if (outOfStockSizes !== undefined) product.outOfStockSizes = outOfStockSizes.split(',').map(s => s.trim()).filter(s => s !== ''); // NEW
         if (colors) product.colors = colors.split(',').map(c => c.trim()).filter(c => c !== ''); 
         
         if (req.files && req.files.length > 0) {
