@@ -66,6 +66,7 @@ const ProductSchema = new mongoose.Schema({
     description_ar: String,
     images: [mongoose.Schema.Types.Mixed], 
     inStock: { type: Boolean, default: true },
+    isEid: { type: Boolean, default: false }, // NEW: Eid Collection
     createdAt: { type: Date, default: Date.now }
 });
 const Product = mongoose.model('Product', ProductSchema);
@@ -196,7 +197,7 @@ app.get('/api/products', async (req, res) => {
 
 app.post('/api/products', requireAuth, upload.array('images', 10), async (req, res) => {
     try {
-        const { itemId, name_en, name_ar, price, oldPrice, category, subCategory, sizes, colors, description_en, description_ar, inStock, imageCodes } = req.body;
+        const { itemId, name_en, name_ar, price, oldPrice, category, subCategory, sizes, colors, description_en, description_ar, inStock, isEid, imageCodes } = req.body;
         
         let sizesArray = sizes ? sizes.split(',').map(s => s.trim()).filter(s => s !== '') : [];
         let colorsArray = colors ? colors.split(',').map(c => c.trim()).filter(c => c !== '') : [];
@@ -216,7 +217,8 @@ app.post('/api/products', requireAuth, upload.array('images', 10), async (req, r
             colors: colorsArray,
             description_en, description_ar,
             images: imageObjects, 
-            inStock: inStock === 'true' || inStock === true 
+            inStock: inStock === 'true' || inStock === true,
+            isEid: isEid === 'true' || isEid === true // NEW
         });
 
         await newProduct.save();
@@ -229,7 +231,7 @@ app.post('/api/products', requireAuth, upload.array('images', 10), async (req, r
 
 app.put('/api/products/:id', requireAuth, upload.array('images', 10), async (req, res) => {
     try {
-        const { itemId, name_en, name_ar, price, oldPrice, category, subCategory, sizes, colors, description_en, description_ar, inStock, imageCodes } = req.body;
+        const { itemId, name_en, name_ar, price, oldPrice, category, subCategory, sizes, colors, description_en, description_ar, inStock, isEid, imageCodes } = req.body;
         const product = await Product.findById(req.params.id);
         if (!product) return res.status(404).json({ error: "Not found" });
         
@@ -243,6 +245,7 @@ app.put('/api/products/:id', requireAuth, upload.array('images', 10), async (req
         product.description_en = description_en;
         product.description_ar = description_ar;
         product.inStock = inStock === 'true' || inStock === true;
+        product.isEid = isEid === 'true' || isEid === true; // NEW
         
         if (sizes) product.sizes = sizes.split(',').map(s => s.trim()).filter(s => s !== '');
         if (colors) product.colors = colors.split(',').map(c => c.trim()).filter(c => c !== ''); 
@@ -267,6 +270,22 @@ app.put('/api/products/:id/toggle', requireAuth, async (req, res) => {
         const product = await Product.findById(req.params.id);
         if (product) {
             product.inStock = !product.inStock; 
+            await product.save();
+            res.json(product);
+        } else {
+            res.status(404).json({ error: "Not found" });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// NEW: Quick toggle for Eid Status
+app.put('/api/products/:id/toggle-eid', requireAuth, async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+        if (product) {
+            product.isEid = !product.isEid; 
             await product.save();
             res.json(product);
         } else {
