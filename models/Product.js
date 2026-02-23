@@ -11,6 +11,7 @@ const productSchema = new mongoose.Schema({
     category: { type: String, default: 'all' },
     subCategory: { type: String, default: 'other' }, // NEW: Item Type (Pajamas, etc.)
     sizes: [String], 
+    outOfStockSizes: [String], // NEW: Specific ages/sizes out of stock
     colors: [String],
     price: { type: Number, required: true },
     oldPrice: { type: Number },
