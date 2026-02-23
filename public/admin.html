@@ -78,7 +78,7 @@
                             <th>الاسم</th>
                             <th>السعر</th>
                             <th>القسم / النوع</th>
-                            <th>الحالة</th>
+                            <th>الحالة والعيد</th>
                             <th class="text-end ps-4">إجراءات</th>
                         </tr>
                     </thead>
@@ -153,6 +153,14 @@
                                 <select name="inStock" id="inStock" class="form-select rounded-3">
                                     <option value="true">✅ متوفر</option>
                                     <option value="false">❌ نفد الكمية</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-warning">تشكيلة العيد ✨</label>
+                                <select name="isEid" id="isEid" class="form-select rounded-3 border-warning">
+                                    <option value="false">❌ عادي</option>
+                                    <option value="true">✨ متوفر في العيد</option>
                                 </select>
                             </div>
 
@@ -241,9 +249,14 @@
                 const imgPath = getImageUrl(firstImg);
 
                 const stockBtn = p.inStock 
-                    ? `<button onclick="toggleStock('${p._id}')" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm">✅ متوفر</button>`
-                    : `<button onclick="toggleStock('${p._id}')" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm">❌ نفد</button>`;
+                    ? `<button onclick="toggleStock('${p._id}')" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm w-100">✅ متوفر</button>`
+                    : `<button onclick="toggleStock('${p._id}')" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm w-100">❌ نفد</button>`;
                 
+                // NEW: EID BUTTON TOGGLE
+                const eidBtn = p.isEid 
+                    ? `<button onclick="toggleEid('${p._id}')" class="btn btn-sm btn-warning rounded-pill px-3 shadow-sm w-100 mt-1">✨ عيدي</button>`
+                    : `<button onclick="toggleEid('${p._id}')" class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-sm w-100 mt-1">عادي</button>`;
+
                 return `
                 <tr>
                     <td class="pe-4"><img src="${imgPath}" class="product-img shadow-sm"></td>
@@ -254,7 +267,10 @@
                         <span class="badge bg-light text-dark border">${categoryMap[p.category] || p.category}</span>
                         <div class="small text-muted mt-1">${p.subCategory || '-'}</div>
                     </td>
-                    <td>${stockBtn}</td>
+                    <td style="width: 110px;">
+                        ${stockBtn}
+                        ${eidBtn}
+                    </td>
                     <td class="text-end ps-4">
                         <button onclick="openEditModal('${p._id}')" class="btn btn-sm btn-primary px-3 rounded-pill me-1">تعديل</button>
                         <button onclick="deleteProduct('${p._id}')" class="btn btn-sm btn-outline-danger px-3 rounded-pill">حذف</button>
@@ -266,6 +282,14 @@
         async function toggleStock(id) {
             try {
                 await fetch(`${API_URL}/${id}/toggle`, { method: 'PUT', headers: { 'Authorization': ADMIN_TOKEN } });
+                fetchInventory();
+            } catch(e) { alert("Error"); }
+        }
+
+        // NEW: EID TOGGLE FUNCTION
+        async function toggleEid(id) {
+            try {
+                await fetch(`${API_URL}/${id}/toggle-eid`, { method: 'PUT', headers: { 'Authorization': ADMIN_TOKEN } });
                 fetchInventory();
             } catch(e) { alert("Error"); }
         }
@@ -311,6 +335,7 @@
             document.getElementById('category').value = p.category;
             document.getElementById('subCategory').value = p.subCategory || 'other'; 
             document.getElementById('inStock').value = p.inStock;
+            document.getElementById('isEid').value = p.isEid ? 'true' : 'false'; // NEW
             document.getElementById('sizes').value = p.sizes ? p.sizes.join(', ') : '';
             document.getElementById('colors').value = p.colors ? p.colors.join(', ') : ''; 
             document.getElementById('description_ar').value = p.description_ar || '';
