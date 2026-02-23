@@ -164,16 +164,20 @@
                                 </select>
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">المقاسات (افصل بينها بفاصلة)</label>
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold">المقاسات المتوفرة (افصل بينها بفاصلة)</label>
                                 <input type="text" name="sizes" id="sizes" class="form-control rounded-3" placeholder="مثال: 0-3M, 2Y, 3Y, 4Y" dir="ltr">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-danger">المقاسات التي نفدت ❌ (افصل بفاصلة)</label>
+                                <input type="text" name="outOfStockSizes" id="outOfStockSizes" class="form-control rounded-3 border-danger" placeholder="مثال: 2Y, 4Y" dir="ltr">
                             </div>
 
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold">الألوان (افصل بينها بفاصلة)</label>
                                 <input type="text" name="colors" id="colors" class="form-control rounded-3" placeholder="أحمر, أزرق, أبيض" dir="rtl">
                             </div>
-
                             <textarea name="description_en" id="description_en" class="d-none"></textarea>
 
                             <div class="col-md-12">
@@ -337,6 +341,7 @@
             document.getElementById('inStock').value = p.inStock;
             document.getElementById('isEid').value = p.isEid ? 'true' : 'false'; // NEW
             document.getElementById('sizes').value = p.sizes ? p.sizes.join(', ') : '';
+            document.getElementById('outOfStockSizes').value = p.outOfStockSizes ? p.outOfStockSizes.join(', ') : ''; // NEW
             document.getElementById('colors').value = p.colors ? p.colors.join(', ') : ''; 
             document.getElementById('description_ar').value = p.description_ar || '';
             
@@ -349,6 +354,7 @@
             document.getElementById('productForm').reset();
             document.getElementById('modalTitle').innerText = "إضافة منتج جديد";
             document.getElementById('editId').value = ""; 
+            document.getElementById('outOfStockSizes').value = ""; // NEW
             document.getElementById('previewContainer').innerHTML = '<div class="text-muted small my-auto">الصور المختارة ستظهر هنا...</div>';
             modal.show();
         }
