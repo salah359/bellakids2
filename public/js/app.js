@@ -483,6 +483,9 @@ function updateCartTotalUI() {
     if(totalDisplay) totalDisplay.innerText = `${t.currency}${total.toFixed(2)}`;
 }
 
+// -----------------------------------------------------------------------------
+// UPDATED: WhatsApp Send Logic to Empty Basket
+// -----------------------------------------------------------------------------
 function sendToWhatsApp() {
     if (state.cart.length === 0) return;
     const t = I18N[state.lang];
@@ -505,7 +508,7 @@ function sendToWhatsApp() {
         if(item.variantId) msg += `- ${t.variant_code}: ${item.variantId}\n`;
         msg += `- ${t.qty}: ${item.qty}\n`;
         const productLink = `${window.location.origin}/home?id=${item.id}`;
-msg += `- Link: ${productLink}\n\n`;
+        msg += `- Link: ${productLink}\n\n`;
     });
 
     const total = subtotal + deliveryCost;
@@ -516,8 +519,22 @@ msg += `- Link: ${productLink}\n\n`;
     msg += `--------------------------\n\n`;
     msg += `Thank you for shopping with Bella Kids!`;
 
+    // 1. Open WhatsApp with the prefilled message
     window.open(`https://wa.me/${CONFIG.WHATSAPP_PHONE}?text=${encodeURIComponent(msg)}`, '_blank');
+
+    // 2. Empty the cart immediately after sending them to WhatsApp
+    state.cart = [];
+    saveCart(); // This function handles saving to localStorage and updating the UI counter/basket view
+
+    // 3. Optional: Close the sidebar basket drawer so they return to a clean view
+    const cartSidebarEl = document.getElementById('cartSidebar');
+    if (cartSidebarEl) {
+        // Safe check for bootstrap Offcanvas instance
+        const bsOffcanvas = bootstrap.Offcanvas.getInstance(cartSidebarEl);
+        if (bsOffcanvas) bsOffcanvas.hide();
+    }
 }
+// -----------------------------------------------------------------------------
 
 function toggleLanguage() {
     state.lang = state.lang === 'en' ? 'ar' : 'en';
@@ -613,7 +630,6 @@ window.shareProduct = function(name, url) {
     }
 };
 
-// MODIFIED: Replaced inline style with the responsive .hero-banner-img class
 async function fetchHeroSlides() {
     const container = document.getElementById('carouselInner');
     if (!container) return; 
@@ -635,7 +651,6 @@ async function fetchHeroSlides() {
                 </div>
             `).join('');
         } else {
-            // Hide the entire row (Carousel + Text) if no slides exist
             const carouselRow = document.getElementById('mainHeroCarousel').closest('.row');
             if (carouselRow) carouselRow.style.display = 'none';
         }
