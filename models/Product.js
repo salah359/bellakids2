@@ -15,6 +15,7 @@ const productSchema = new mongoose.Schema({
     price: { type: Number, required: true },
     oldPrice: { type: Number },
     inStock: { type: Boolean, default: true },
+    isEid: { type: Boolean, default: false }, // NEW: Eid Collection Toggle
     // UPDATED: Images are now objects with a URL and a Variant ID
     images: [{
         url: { type: String },
