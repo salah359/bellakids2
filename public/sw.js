@@ -3,6 +3,8 @@
 const cacheName = 'bella-v5'; // Incremented version to force an update on all devices
 const staticAssets = [
   './',
+  './offer',
+  './eid.html',
   './index.html',
   './girls.html',
   './boys.html',
@@ -69,3 +71,4 @@ self.addEventListener('fetch', el => {
     );
   }
 });
+
