@@ -335,9 +335,11 @@ app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'adm
 app.get('/admin', requirePageAuth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/about', (req, res) => res.sendFile(path.join(__dirname, 'public', 'about.html')));
 app.get('/offers', (req, res) => res.sendFile(path.join(__dirname, 'public', 'offers.html')));
+app.get('/eid', (req, res) => res.sendFile(path.join(__dirname, 'public', 'eid.html')));
 
 app.get(/(.*)/, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
