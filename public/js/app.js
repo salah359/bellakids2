@@ -335,7 +335,21 @@ function openProductModal(id) {
         : t.currency + p.price;
 
     const sizes = (p.sizes && p.sizes.length) ? p.sizes : ['One Size'];
-    document.getElementById('sizeSelector').innerHTML = sizes.map(s => `<button class="btn btn-outline-secondary btn-sm m-1" onclick="selectSize(this, '${s}')">${s}</button>`).join('');
+    const oos = p.outOfStockSizes || []; // Get out of stock sizes
+
+    // UPDATED SIZES RENDER LOGIC
+    document.getElementById('sizeSelector').innerHTML = sizes.map(s => {
+        // Check if this specific size exists in the Out Of Stock list
+        const isOOS = oos.some(o => o.trim().toUpperCase() === s.trim().toUpperCase());
+        
+        if (isOOS) {
+            // Render a disabled, crossed-out button for out-of-stock sizes
+            return `<button type="button" class="btn btn-outline-danger btn-sm m-1" disabled style="text-decoration: line-through; opacity: 0.5; cursor: not-allowed;">${s}</button>`;
+        }
+        
+        // Render normal clickable button
+        return `<button type="button" class="btn btn-outline-secondary btn-sm m-1" onclick="selectSize(this, '${s}')">${s}</button>`;
+    }).join('');
 
     // Thumbnails
     const thumbContainer = document.getElementById('thumbnailsSelector');
@@ -381,7 +395,10 @@ function openProductModal(id) {
 }
 
 function selectSize(el, s) {
-    document.querySelectorAll('#sizeSelector .btn').forEach(b => b.classList.replace('btn-dark', 'btn-outline-secondary'));
+    document.querySelectorAll('#sizeSelector .btn').forEach(b => {
+        // Skip modifying disabled buttons
+        if (!b.disabled) b.classList.replace('btn-dark', 'btn-outline-secondary');
+    });
     el.classList.replace('btn-outline-secondary', 'btn-dark');
     state.selectedSize = s;
 }
@@ -484,7 +501,7 @@ function updateCartTotalUI() {
 }
 
 // -----------------------------------------------------------------------------
-// UPDATED: WhatsApp Send Logic to Empty Basket
+// UPDATED: WhatsApp Send Logic to Empty Basket Reliably on Mobile
 // -----------------------------------------------------------------------------
 function sendToWhatsApp() {
     if (state.cart.length === 0) return;
@@ -519,20 +536,29 @@ function sendToWhatsApp() {
     msg += `--------------------------\n\n`;
     msg += `Thank you for shopping with Bella Kids!`;
 
-    // 1. Open WhatsApp with the prefilled message
-    window.open(`https://wa.me/${CONFIG.WHATSAPP_PHONE}?text=${encodeURIComponent(msg)}`, '_blank');
+    const waUrl = `https://wa.me/${CONFIG.WHATSAPP_PHONE}?text=${encodeURIComponent(msg)}`;
 
-    // 2. Empty the cart immediately after sending them to WhatsApp
+    // 1. Empty the cart state immediately FIRST
     state.cart = [];
-    saveCart(); // This function handles saving to localStorage and updating the UI counter/basket view
+    
+    // 2. Force remove from localStorage just to be 100% sure
+    localStorage.removeItem(CONFIG.CART_KEY);
+    
+    // 3. Update the UI to show 0 items
+    saveCart(); 
 
-    // 3. Optional: Close the sidebar basket drawer so they return to a clean view
+    // 4. Close the sidebar basket drawer so they return to a clean view
     const cartSidebarEl = document.getElementById('cartSidebar');
     if (cartSidebarEl) {
-        // Safe check for bootstrap Offcanvas instance
         const bsOffcanvas = bootstrap.Offcanvas.getInstance(cartSidebarEl);
         if (bsOffcanvas) bsOffcanvas.hide();
     }
+
+    // 5. Open WhatsApp using a tiny delay. 
+    // This gives the mobile browser time to finish deleting the cart before switching apps!
+    setTimeout(() => {
+        window.open(waUrl, '_blank');
+    }, 300);
 }
 // -----------------------------------------------------------------------------
 
