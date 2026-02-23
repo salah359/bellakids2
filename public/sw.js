@@ -1,6 +1,6 @@
 // public/sw.js
 
-const cacheName = 'bella-v4'; // Increment version (v3 -> v4) to force an update
+const cacheName = 'bella-v5'; // Incremented version to force an update on all devices
 const staticAssets = [
   './',
   './index.html',
@@ -13,10 +13,6 @@ const staticAssets = [
   './css/style.css',
   './js/app.js'
 ];
-
-// Constants for hourly cleanup
-const ONE_HOUR = 60 * 60 * 1000;
-let lastCleared = Date.now();
 
 // 1. Install Event: Cache static assets and force the new service worker to activate
 self.addEventListener('install', async el => {
@@ -38,21 +34,8 @@ self.addEventListener('activate', el => {
   return self.clients.claim();
 });
 
-// 3. Fetch Event: Implement a "Network First" strategy for pages and API
-// Includes new logic to clear cache if an hour has passed
+// 3. Fetch Event: Network First for Pages/API, Stale-While-Revalidate for CSS/JS/Images
 self.addEventListener('fetch', el => {
-  const currentTime = Date.now();
-  
-  // Check if an hour has passed since the last automatic clear
-  if (currentTime - lastCleared > ONE_HOUR) {
-    lastCleared = currentTime;
-    el.waitUntil(
-      caches.keys().then(keys => {
-        return Promise.all(keys.map(key => caches.delete(key)));
-      })
-    );
-  }
-
   const req = el.request;
   const url = new URL(req.url);
 
@@ -63,9 +46,26 @@ self.addEventListener('fetch', el => {
       fetch(req).catch(() => caches.match(req))
     );
   } else {
-    // Use Cache First for static assets like images, CSS, and JS to maintain speed
+    // Use Stale-While-Revalidate for static assets like images, CSS, and JS
+    // This serves the cached version INSTANTLY, but secretly fetches the latest version
+    // in the background and saves it for the NEXT time the user visits.
     el.respondWith(
-      caches.match(req).then(res => res || fetch(req))
+      caches.match(req).then(cachedResponse => {
+        const fetchPromise = fetch(req).then(networkResponse => {
+          // Make sure we only cache valid responses from our own server
+          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+            caches.open(cacheName).then(cache => {
+              cache.put(req, networkResponse.clone());
+            });
+          }
+          return networkResponse;
+        }).catch(() => {
+          // If the network fails (user is offline), fail silently. The cached response will still load.
+        });
+
+        // Return the cached response immediately if we have it, otherwise wait for the network fetch
+        return cachedResponse || fetchPromise;
+      })
     );
   }
 });
