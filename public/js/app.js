@@ -193,7 +193,21 @@ function filterGrid() {
     const type = typeDropdown ? typeDropdown.value : 'all';
     
     const filtered = state.products.filter(p => {
-        const matchesCategory = (category === 'all' || category === 'featured') ? true : (p.category && p.category.includes(category));
+        let matchesCategory = true;
+        
+        // NEW: Detect if we are on the Eid page to enforce the "Eid Collection" filter
+        if (window.location.pathname.includes('eid')) {
+            if (!p.isEid) return false; // Exclude non-eid items immediately
+            
+            // Allow the dropdown on the Eid page to filter further between Boys/Girls/Newborn
+            if (category !== 'all') {
+                matchesCategory = p.category && p.category.includes(category);
+            }
+        } else {
+            // Standard page matching
+            matchesCategory = (category === 'all' || category === 'featured') ? true : (p.category && p.category.includes(category));
+        }
+
         const nameMatch = (p.name_en||'').toLowerCase().includes(term) || (p.name_ar||'').toLowerCase().includes(term) || (p.itemId||'').toLowerCase().includes(term);
         
         let matchesAge = true;
@@ -612,7 +626,11 @@ async function fetchHeroSlides() {
             container.innerHTML = slides.map((s, idx) => `
                 <div class="carousel-item ${idx === 0 ? 'active' : ''}">
                     <a href="${s.link && s.link !== '#' ? s.link : 'javascript:void(0)'}">
-                        <img src="${s.url}" class="d-block w-100 hero-banner-img" alt="عروض بيلا كيدز">
+                        <img src="${s.url}" 
+                             class="d-block w-100 hero-banner-img" 
+                             alt="عروض بيلا كيدز"
+                             ${idx === 0 ? 'fetchpriority="high"' : ''} 
+                             loading="eager">
                     </a>
                 </div>
             `).join('');
@@ -627,15 +645,3 @@ async function fetchHeroSlides() {
         if (carouselRow) carouselRow.style.display = 'none';
     }
 }
-// Inside fetchHeroSlides in app.js
-container.innerHTML = slides.map((s, idx) => `
-    <div class="carousel-item ${idx === 0 ? 'active' : ''}">
-        <a href="${s.link && s.link !== '#' ? s.link : 'javascript:void(0)'}">
-            <img src="${s.url}" 
-                 class="d-block w-100 hero-banner-img" 
-                 alt="عروض بيلا كيدز"
-                 ${idx === 0 ? 'fetchpriority="high"' : ''} 
-                 loading="eager">
-        </a>
-    </div>
-`).join('');
