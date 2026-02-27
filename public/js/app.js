@@ -160,7 +160,16 @@ async function fetchProducts() {
     if (!grid) return; 
     try {
         const res = await fetch(CONFIG.API_URL);
-        state.products = await res.json();
+        let products = await res.json();
+        
+        // --- ADDED: Shuffle the products array randomly ---
+        for (let i = products.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [products[i], products[j]] = [products[j], products[i]];
+        }
+        // --------------------------------------------------
+
+        state.products = products;
         filterGrid(); 
 
         // AUTO-OPEN PRODUCT LOGIC
