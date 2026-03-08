@@ -115,6 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateCartCounts();
     renderSidebarCart(); 
+    renderRecentlyViewedPageUI(); // NEW: Initial render of recently viewed section on page load
     fetchProducts();
     
     // FETCH THE CAROUSEL SLIDES
@@ -340,6 +341,9 @@ function trackRecentlyViewed(product) {
     // Enforce the limit
     state.recentlyViewed = recent.slice(0, CONFIG.MAX_RECENT);
     localStorage.setItem(CONFIG.RECENTLY_VIEWED_KEY, JSON.stringify(state.recentlyViewed));
+
+    // NEW: Update the on-page UI if the container exists
+    renderRecentlyViewedPageUI();
 }
 
 function renderRecentlyViewedUI() {
@@ -384,6 +388,53 @@ function renderRecentlyViewedUI() {
     wrapper.className = 'recently-viewed-section';
     wrapper.innerHTML = recentHtml;
     modalBody.appendChild(wrapper);
+}
+
+// NEW: Function to render recently viewed items on the page (under search filters)
+// NEW: Function to render recently viewed items on the page (under search filters)
+function renderRecentlyViewedPageUI() {
+    const pageContainer = document.getElementById('recently-viewed-page-container');
+    if (!pageContainer) return;
+    
+    // Get up to 4 most recently viewed items
+    const displayList = state.recentlyViewed.slice(0, 4);
+    
+    if (displayList.length === 0) {
+        pageContainer.innerHTML = '';
+        return;
+    }
+    
+    const t = I18N[state.lang];
+    const headingText = state.lang === 'ar' ? 'منتجات شاهدتها مؤخراً' : 'Recently Viewed';
+
+    let recentHtml = `
+        <div class="container py-4 border-top mt-5">
+            <h2 class="fw-bold mb-4 text-center">${headingText}</h2>
+            <div class="row g-4 justify-content-center">
+    `;
+
+    displayList.forEach(item => {
+        const name = state.lang === 'ar' ? (item.name_ar || item.name_en) : (item.name_en || item.name_ar);
+        const img = resolveImage(item.images && item.images[0] ? item.images[0] : null);
+        
+        // FIXED: Removed data-aos="fade-up" so it appears instantly without needing a refresh
+        recentHtml += `
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card product-card h-100 border-0 shadow-sm" style="cursor: pointer;" onclick="openProductModal('${item._id}')">
+                    <div class="position-relative overflow-hidden ratio ratio-1x1 rounded-3">
+                        <img src="${img}" class="img-fluid object-fit-cover w-100 h-100 product-img-hover">
+                    </div>
+                    <div class="card-body text-center p-3">
+                        <h6 class="fw-bold text-dark mb-1 text-truncate">${name}</h6>
+                        <div class="text-primary fw-bold">${t.currency}${item.price}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    recentHtml += `</div></div>`;
+    pageContainer.innerHTML = recentHtml;
 }
 // -----------------------------
 
