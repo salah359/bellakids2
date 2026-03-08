@@ -283,6 +283,20 @@ function renderProducts(products, container) {
 
         const productUrl = `${window.location.origin}${window.location.pathname}?id=${p._id}`;
 
+        // --- NEW: Generate Sizes HTML for the card ---
+        let sizesHtml = '';
+        if (p.sizes && p.sizes.length > 0) {
+            const sizesBadges = p.sizes.map(s => {
+                const isOOS = p.outOfStockSizes && p.outOfStockSizes.some(o => o.trim().toUpperCase() === s.trim().toUpperCase());
+                if (isOOS) {
+                    return `<span class="badge bg-light text-muted border border-light" style="margin: 2px; text-decoration: line-through; opacity: 0.6; font-size: 0.7rem;">${s}</span>`;
+                }
+                return `<span class="badge bg-white text-dark border" style="margin: 2px; font-size: 0.7rem;">${s}</span>`;
+            }).join('');
+            sizesHtml = `<div class="mt-2 mb-2 d-flex flex-wrap justify-content-center gap-1">${sizesBadges}</div>`;
+        }
+        // ---------------------------------------------
+
         container.innerHTML += `
         <div class="col-6 col-md-4 col-lg-3 mb-4" data-aos="fade-up">
             <div class="card product-card h-100 border-0 shadow-sm" style="${cardOpacity}" onclick="openProductModal('${p._id}')">
@@ -297,6 +311,7 @@ function renderProducts(products, container) {
                 </div>
                 <div class="card-body text-center p-3">
                     <h6 class="fw-bold text-dark mb-1 text-truncate">${name}</h6>
+                    ${sizesHtml}
                     ${priceHtml}
                     <button class="btn ${btnClass} rounded-pill w-100 btn-sm" ${btnState}>${isSoldOut ? t.out_of_stock : t.add_to_cart}</button>
                 </div>
