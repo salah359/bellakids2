@@ -13,7 +13,9 @@ const CONFIG = {
     CART_KEY: 'BELLA_KIDS_CART',
     LANG_KEY: 'BELLA_LANGUAGE',
     WHATSAPP_PHONE: '972598439251',
-    DEFAULT_DELIVERY: 20 
+    DEFAULT_DELIVERY: 20,
+    RECENTLY_VIEWED_KEY: 'BELLA_KIDS_RECENT',
+    MAX_RECENT: 5 // Keep 5 so we can display 4 (excluding the currently active one)
 };
 
 // Standard Ages for Filter
@@ -42,7 +44,8 @@ let state = {
     currentCategory: 'all',
     selectedSize: null,
     selectedColor: null, 
-    modalQty: 1 
+    modalQty: 1,
+    recentlyViewed: JSON.parse(localStorage.getItem(CONFIG.RECENTLY_VIEWED_KEY)) || []
 };
 
 // Translations
@@ -320,12 +323,79 @@ function renderProducts(products, container) {
     });
 }
 
+// --- RECENTLY VIEWED LOGIC ---
+function trackRecentlyViewed(product) {
+    // Remove if already exists to bring it to the front
+    let recent = state.recentlyViewed.filter(p => p._id !== product._id);
+    
+    // Add to the beginning of the array
+    recent.unshift({
+        _id: product._id,
+        name_ar: product.name_ar,
+        name_en: product.name_en,
+        price: product.price,
+        images: product.images
+    });
+
+    // Enforce the limit
+    state.recentlyViewed = recent.slice(0, CONFIG.MAX_RECENT);
+    localStorage.setItem(CONFIG.RECENTLY_VIEWED_KEY, JSON.stringify(state.recentlyViewed));
+}
+
+function renderRecentlyViewedUI() {
+    // Skip the first item (index 0) because that is the product currently open in the modal
+    const displayList = state.recentlyViewed.slice(1); 
+
+    if (displayList.length === 0) return; 
+
+    let recentHtml = `
+        <div class="mt-4 pt-4 border-top">
+            <h6 class="fw-bold mb-3 text-muted" style="font-size: 0.9rem;">${state.lang === 'ar' ? 'منتجات شاهدتها مؤخراً' : 'Recently Viewed'}</h6>
+            <div class="row g-2">
+    `;
+
+    displayList.forEach(item => {
+        const name = state.lang === 'ar' ? (item.name_ar || item.name_en) : (item.name_en || item.name_ar);
+        const img = resolveImage(item.images && item.images[0] ? item.images[0] : null);
+        
+        recentHtml += `
+            <div class="col-3">
+                <div class="card border-0 text-center bg-transparent" style="cursor: pointer;" onclick="bootstrap.Modal.getInstance(document.getElementById('productModal')).hide(); setTimeout(() => openProductModal('${item._id}'), 350);">
+                    <div class="ratio ratio-1x1 mb-1">
+                        <img src="${img}" class="rounded shadow-sm object-fit-cover w-100 h-100">
+                    </div>
+                    <div class="small text-truncate fw-bold text-dark" style="font-size: 0.7rem;">${name}</div>
+                </div>
+            </div>
+        `;
+    });
+
+    recentHtml += `</div></div>`;
+
+    const modalBody = document.querySelector('#productModal .modal-body');
+    if (!modalBody) return;
+
+    // Remove existing recently viewed section to prevent duplicates
+    const oldRecent = modalBody.querySelector('.recently-viewed-section');
+    if (oldRecent) oldRecent.remove();
+    
+    // Inject the newly generated HTML
+    const wrapper = document.createElement('div');
+    wrapper.className = 'recently-viewed-section';
+    wrapper.innerHTML = recentHtml;
+    modalBody.appendChild(wrapper);
+}
+// -----------------------------
+
 function openProductModal(id) {
     const p = state.products.find(x => x._id === id);
     if (!p) return;
     state.selectedSize = null;
     state.modalQty = 1; 
-    
+
+    // --- TRACK VIEW ---
+    trackRecentlyViewed(p);
+
     const t = I18N[state.lang];
     const name = state.lang === 'ar' ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar);
     const desc = state.lang === 'ar' ? (p.description_ar || p.description_en) : (p.description_en || p.description_ar);
@@ -414,6 +484,9 @@ function openProductModal(id) {
             bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
         };
     }
+
+    // --- ADD RECENTLY VIEWED SECTION TO MODAL BEFORE SHOWING IT ---
+    renderRecentlyViewedUI();
 
     new bootstrap.Modal(document.getElementById('productModal')).show();
 }
