@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تشكيلة الربيع والصيف | بيلا كيدز</title>
+    <meta name="theme-color" content="#FF9F1C">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        /* =========================================
+           SPRING/SUMMER THEME - CORE STYLES
+           ========================================= */
+        :root {
+            --spring-primary: #FF9F1C;   /* Sunny Orange */
+            --spring-secondary: #FFBF69; /* Soft Peach */
+            --spring-accent: #2EC4B6;    /* Fresh Teal */
+            --spring-glow: rgba(255, 159, 28, 0.4);
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --glass-shadow: 0 8px 32px 0 rgba(46, 196, 182, 0.1);
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif !important;
+            background: linear-gradient(135deg, #E0FBFC 0%, #CBF3F0 100%);
+            color: #2d3436;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* =========================================
+           SUMMER BACKGROUND ANIMATIONS
+           ========================================= */
+        .sun-glow {
+            position: fixed;
+            top: -15%;
+            right: -10%;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, rgba(255,233,166,0.8) 0%, rgba(255,233,166,0) 70%);
+            border-radius: 50%;
+            z-index: -3;
+            animation: pulseSun 8s infinite alternate ease-in-out;
+            pointer-events: none;
+        }
+
+        @keyframes pulseSun {
+            0% { transform: scale(1); opacity: 0.7; }
+            100% { transform: scale(1.15); opacity: 1; }
+        }
+
+        .soft-cloud {
+            position: fixed;
+            background: rgba(255, 255, 255, 0.4);
+            filter: blur(40px);
+            border-radius: 50%;
+            z-index: -3;
+            animation: floatCloud 20s infinite alternate linear;
+        }
+        .cloud-1 { top: 20%; left: -10%; width: 40vw; height: 20vw; }
+        .cloud-2 { bottom: 10%; right: 20%; width: 50vw; height: 30vw; animation-delay: -10s; background: rgba(255, 255, 255, 0.3); }
+
+        @keyframes floatCloud {
+            0% { transform: translateX(0) scale(1); }
+            100% { transform: translateX(20%) scale(1.1); }
+        }
+
+        #spring-dust {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2; pointer-events: none;
+        }
+
+        /* =========================================
+           GLASSMORPHISM UI
+           ========================================= */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.85) !important;
+            backdrop-filter: blur(25px);
+            border-bottom: 1px solid rgba(255,255,255,0.8);
+            transition: all 0.4s ease;
+        }
+        .glass-nav.scrolled {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            background: rgba(255, 255, 255, 0.98) !important;
+        }
+
+        /* =========================================
+           HERO SECTION
+           ========================================= */
+        .hero-spring {
+            position: relative;
+            padding: 15vh 0 10vh;
+            text-align: center;
+            overflow: hidden;
+            border-bottom-left-radius: 60px;
+            border-bottom-right-radius: 60px;
+            background: rgba(255,255,255,0.4);
+            backdrop-filter: blur(8px);
+            border-bottom: 3px solid rgba(255,255,255,0.8);
+            box-shadow: 0 20px 50px rgba(46, 196, 182, 0.05);
+            margin-bottom: 60px;
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 6vw, 5.5rem);
+            font-weight: 900;
+            line-height: 1.2;
+            letter-spacing: -1px;
+            background: linear-gradient(45deg, var(--spring-primary), var(--spring-accent), #FF5A5F);
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shineText 6s linear infinite;
+            margin-bottom: 20px;
+            text-shadow: 0px 10px 25px rgba(255, 159, 28, 0.2);
+        }
+
+        @keyframes shineText {
+            to { background-position: 200% center; }
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: #4a4a4a;
+            max-width: 700px;
+            margin: 0 auto 40px;
+            font-weight: 600;
+            line-height: 1.8;
+            text-shadow: 0 2px 5px rgba(255,255,255,0.9);
+        }
+
+        .floating-shape {
+            position: absolute;
+            animation: floatUpDown 6s ease-in-out infinite;
+            filter: drop-shadow(0 15px 20px rgba(0,0,0,0.1));
+            z-index: 0;
+            opacity: 0.9;
+        }
+
+        @keyframes floatUpDown {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+
+        /* =========================================
+           ADVANCED FILTER PANEL
+           ========================================= */
+        .spring-filter-bar {
+            border-radius: 50px;
+            padding: 15px;
+            position: relative;
+            z-index: 10;
+            margin-top: -50px;
+            margin-bottom: 60px;
+            background: rgba(255,255,255,0.9);
+            border: 2px solid white;
+        }
+
+        .filter-input, .filter-select {
+            background: rgba(255,255,255,0.95);
+            border: 2px solid transparent !important;
+            border-radius: 30px !important;
+            padding: 15px 25px;
+            font-weight: 700;
+            color: #2d3436;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.02);
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+        
+        .filter-input:focus, .filter-select:focus {
+            background: #fff;
+            border-color: var(--spring-accent) !important;
+            box-shadow: 0 0 15px rgba(46, 196, 182, 0.3) !important;
+            outline: none;
+            transform: translateY(-2px);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--spring-accent);
+            font-size: 1.3rem;
+            z-index: 5;
+        }
+
+        .filter-input { padding-right: 55px !important; }
+
+        /* =========================================
+           SEASON PRODUCT CARDS
+           ========================================= */
+        .season-card-wrapper {
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            height: 100%;
+        }
+
+        .season-card-wrapper:hover {
+            transform: translateY(-15px) scale(1.02);
+            z-index: 2;
+        }
+
+        .season-product-card {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(15px);
+            border-radius: 35px !important;
+            border: 3px solid rgba(255,255,255,1) !important;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.06) !important;
+            overflow: hidden;
+            position: relative;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+        }
+
+        .season-product-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 35px;
+            padding: 4px;
+            background: linear-gradient(135deg, var(--spring-primary), var(--spring-secondary), var(--spring-accent));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .season-card-wrapper:hover .season-product-card::before {
+            opacity: 1;
+        }
+
+        .season-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, var(--spring-primary), #FF5A5F);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            z-index: 10;
+            box-shadow: 0 8px 20px rgba(255, 159, 28, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            animation: pulseBadge 2.5s infinite;
+        }
+
+        @keyframes pulseBadge {
+            0% { transform: scale(1); box-shadow: 0 8px 20px rgba(255, 159, 28, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 12px 25px rgba(255, 159, 28, 0.6); }
+            100% { transform: scale(1); box-shadow: 0 8px 20px rgba(255, 159, 28, 0.4); }
+        }
+
+        .season-card-img-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 25px;
+            aspect-ratio: 3/4;
+            background: #fdfdfd;
+        }
+
+        .season-card-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .season-card-wrapper:hover .season-card-img-container img {
+            transform: scale(1.1) rotate(1deg);
+        }
+
+        .spring-add-btn {
+            background: linear-gradient(45deg, var(--spring-accent), #0984e3);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-weight: 900;
+            font-size: 1.1rem;
+            padding: 12px 25px;
+            width: 100%;
+            transition: all 0.4s;
+            box-shadow: 0 8px 20px rgba(46, 196, 182, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .spring-add-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(46, 196, 182, 0.6);
+            color: white;
+            background: linear-gradient(45deg, #0984e3, var(--spring-accent));
+        }
+
+        /* =========================================
+           FLOATING BUTTONS
+           ========================================= */
+        .cart-float {
+            position: fixed;
+            bottom: 110px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--spring-primary), var(--spring-accent));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            box-shadow: 0 15px 35px rgba(255, 159, 28, 0.4);
+            border: 3px solid white;
+            z-index: 1000;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: floatBubble 4s infinite ease-in-out;
+        }
+
+        .cart-float .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #FF5A5F !important;
+            color: white !important;
+            border: 2px solid white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            font-size: 0.9rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(255, 90, 95, 0.5);
+        }
+
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            background: #25d366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 15px 35px rgba(37, 211, 102, 0.4);
+            border: 3px solid white;
+            z-index: 1000;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: floatBubble 4s infinite ease-in-out reverse;
+        }
+
+        .whatsapp-float img { width: 38px; height: auto; }
+
+        .cart-float:hover, .whatsapp-float:hover {
+            transform: scale(1.15) translateY(-10px);
+        }
+
+        @keyframes floatBubble {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.6rem; }
+            .hero-spring { padding: 12vh 0 6vh; border-radius: 0 0 40px 40px; }
+            .spring-filter-bar { margin-top: -30px; padding: 10px; }
+            .whatsapp-float, .cart-float { width: 60px; height: 60px; right: 20px; }
+            .cart-float { bottom: 95px; font-size: 1.5rem; }
+            .whatsapp-float { bottom: 20px; }
+            .whatsapp-float img { width: 32px; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="sun-glow"></div>
+    <div class="soft-cloud cloud-1"></div>
+    <div class="soft-cloud cloud-2"></div>
+    <canvas id="spring-dust"></canvas>
+
+    <nav class="navbar navbar-expand-lg sticky-top glass-nav" id="main-nav">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/home">
+                <img src="assets/images/logo.png" alt="Bella Kids Logo" class="nav-logo">
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item"><a class="nav-link" href="/home">الرئيسية</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/boys">الأولاد</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/girls">البنات</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/newborn">المواليد</a></li>
+                    <li class="nav-item"><a class="nav-link fw-bold text-primary" href="/offers">العروض 🔥</a></li>
+                    <li class="nav-item"><a class="nav-link text-warning fw-bold" href="/eid.html">احتفالات العيد ✨</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/about">من نحن</a></li>
+                </ul>
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-primary rounded-pill px-4 position-relative" data-bs-toggle="offcanvas" data-bs-target="#cartSidebar" style="background: var(--spring-accent); border: none;">
+                        <span>السلة</span> <span class="badge cart-count ms-1">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero-spring">
+        <svg class="floating-shape" style="top: 15%; right: 10%; fill: var(--spring-primary);" width="70" height="70" viewBox="0 0 24 24"><path d="M12 2.25a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75ZM7.5 12a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM18.894 6.166a.75.75 0 0 0-1.06-1.06l-1.591 1.59a.75.75 0 1 0 1.06 1.061l1.591-1.59ZM21.75 12a.75.75 0 0 1-.75.75h-2.25a.75.75 0 0 1 0-1.5H21a.75.75 0 0 1 .75.75ZM17.834 18.894a.75.75 0 0 0 1.06-1.06l-1.59-1.591a.75.75 0 1 0-1.061 1.06l1.59 1.591ZM12 18.75a.75.75 0 0 1 .75.75V21a.75.75 0 0 1-1.5 0v-1.5a.75.75 0 0 1 .75-.75ZM6.166 18.894a.75.75 0 0 1-1.06-1.06l1.59-1.591a.75.75 0 1 1 1.061 1.06l-1.59 1.591ZM2.25 12a.75.75 0 0 1 .75-.75H5.25a.75.75 0 0 1 0 1.5H3a.75.75 0 0 1-.75-.75ZM6.166 5.106a.75.75 0 0 1 1.06 1.06L5.636 7.757a.75.75 0 0 1-1.06-1.06l1.59-1.59Z"/></svg>
+        <svg class="floating-shape" style="bottom: 15%; left: 8%; fill: var(--spring-accent); animation-delay: 2s;" width="60" height="60" viewBox="0 0 24 24"><path d="M17 5.92L15.38 5.4C12.82 4.6 10.02 5.58 8.44 7.6L6.5 10.14c-1.5 1.95-1.93 4.54-1.18 6.88l.6 1.86c.6 1.86 2.37 3.12 4.33 3.12h0c2.4 0 4.53-1.6 5.18-3.92l.85-3.03c.6-2.14 2.1-3.85 4.1-4.72l.46-.2C21.9 9.68 20 6.7 17 5.92z"/></svg>
+        <svg class="floating-shape" style="top: 25%; left: 20%; fill: #FF5A5F; animation-delay: 1.5s;" width="45" height="45" viewBox="0 0 24 24"><path d="M12 22a2 2 0 0 1-2-2v-2.09A7.95 7.95 0 0 1 5.09 14H3a2 2 0 0 1 0-4h2.09A7.95 7.95 0 0 1 10 6.09V4a2 2 0 0 1 4 0v2.09A7.95 7.95 0 0 1 18.91 10H21a2 2 0 0 1 0 4h-2.09A7.95 7.95 0 0 1 14 17.91V20a2 2 0 0 1-2 2zm0-7a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
+
+        <div class="container position-relative z-1" data-aos="zoom-in" data-aos-duration="1500">
+            <span class="badge rounded-pill mb-3 px-4 py-2 shadow-sm" style="background: rgba(255,255,255,0.9); color: var(--spring-accent); font-size: 1.1rem; border: 1px solid var(--spring-accent);">ربيع / صيف 2026</span>
+            <h1 class="hero-title">تشكيلة الربيع والصيف ☀️</h1>
+            <p class="hero-subtitle">اكتشفوا عالمًا من الألوان المنعشة والتصاميم الاستثنائية. مجموعة بيلا كيدز الجديدة صُممت لتجعل كل لحظة لطفلك مليئة بالأناقة، الحيوية، والراحة المطلقة في الأيام الدافئة.</p>
+            <button class="btn rounded-pill px-5 py-3 shadow-lg fw-bold fs-4 text-white" onclick="document.getElementById('shop-section').scrollIntoView({behavior: 'smooth'})" style="background: linear-gradient(45deg, var(--spring-primary), #FF5A5F); border: 2px solid white;">
+                تصفح القطع الصيفية 🌸
+            </button>
+        </div>
+    </header>
+
+    <main id="shop-section" class="container pb-5">
+        
+        <div class="row justify-content-center" data-aos="fade-up">
+            <div class="col-lg-11">
+                <div class="glass-panel spring-filter-bar shadow-sm">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-12 col-lg-3 position-relative">
+                            <input type="text" id="productSearch" class="form-control filter-input w-100" placeholder="ابحث عن..." onkeyup="filterSearch()">
+                            <span class="search-icon">🔍</span>
+                        </div>
+                        <div class="col-4 col-lg-3">
+                            <select class="form-select filter-select" id="categoryFilter" onchange="filterSearch()">
+                                <option value="all">كل الأقسام 👕</option>
+                                <option value="boys">أولاد</option>
+                                <option value="girls">بنات</option>
+                                <option value="newborn">مواليد</option>
+                            </select>
+                        </div>
+                        <div class="col-4 col-lg-3">
+                            <select class="form-select filter-select" id="ageFilter" onchange="filterSearch()">
+                                <option value="all">الأعمار 🎈</option>
+                            </select>
+                        </div>
+                        <div class="col-4 col-lg-3">
+                            <select class="form-select filter-select" id="typeFilter" onchange="filterSearch()">
+                                <option value="all">الأنواع 👗</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 justify-content-center" id="product-grid" style="min-height: 50vh;">
+        </div>
+
+        <div id="empty-state" class="text-center py-5 d-none">
+            <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="var(--spring-secondary)" stroke-width="1.5" class="mb-4 opacity-50"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+            <h2 class="fw-bold text-dark">لا توجد قطع مطابقة</h2>
+            <p class="text-muted fs-5">جرب تغيير الفلاتر للبحث عن قطع أخرى.</p>
+        </div>
+    </main>
+
+    <div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content rounded-5 border-0 overflow-hidden shadow-lg glass-panel">
+                <div class="row g-0">
+                    <div class="col-md-6 bg-light position-relative" id="modalImageContainer">
+                    </div>
+                    <div class="col-md-6 bg-white">
+                        <div class="modal-header border-0 pb-0 pt-4 pe-4">
+                            <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4 pt-2">
+                            <h3 id="popupName" class="fw-bold mb-2" style="color: var(--spring-accent);"></h3>
+                            <h4 id="popupPrice" class="fw-bold mb-4" style="color: var(--spring-primary);"></h4>
+                            <p id="popupDesc" class="text-muted mb-4" style="line-height: 1.7;"></p>
+                            
+                            <div class="mb-4 p-3 rounded-4" style="background: rgba(46, 196, 182, 0.05); border: 1px solid rgba(46, 196, 182, 0.2);">
+                                <label class="small fw-bold text-uppercase text-dark mb-3">اختر المقاس</label>
+                                <div id="sizeSelector" class="d-flex flex-wrap gap-2"></div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="small fw-bold text-uppercase text-dark mb-2">الألوان / الصور</label>
+                                <div id="thumbnailsSelector" class="d-flex flex-wrap gap-2 align-items-center"></div>
+                            </div>
+
+                            <div class="mb-4 d-flex align-items-center gap-3">
+                                <label class="fw-bold text-dark m-0">الكمية:</label>
+                                <div class="d-flex align-items-center gap-2 bg-light rounded-pill p-1 border">
+                                    <button class="btn btn-sm rounded-circle fw-bold text-dark" onclick="adjustModalQty(-1)" style="width:30px; height:30px; background:#e0e0e0;">-</button>
+                                    <input type="text" id="modalQty" class="form-control border-0 bg-transparent text-center fw-bold p-0" value="1" style="width: 40px;" readonly>
+                                    <button class="btn btn-sm rounded-circle fw-bold text-white" onclick="adjustModalQty(1)" style="width:30px; height:30px; background:var(--spring-accent);">+</button>
+                                </div>
+                            </div>
+
+                            <button id="modalAddToCart" class="spring-add-btn py-3 fs-5 mt-3">
+                                أضف إلى السلة 🛍️
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="offcanvas offcanvas-end border-0 shadow-lg glass-panel" tabindex="-1" id="cartSidebar" style="background: rgba(255,255,255,0.98);">
+        <div class="offcanvas-header border-bottom py-4">
+            <h4 class="fw-bold m-0" style="color: var(--spring-accent);">سلة المشتريات 🛍️</h4>
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body" id="cartItems"></div>
+        <div class="p-4 border-top bg-white rounded-top-5 shadow-lg">
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-dark">منطقة التوصيل:</label>
+                <select class="form-select form-select-lg rounded-pill bg-light border-0 fw-bold" id="deliveryRegion" onchange="updateCartTotalUI()">
+                    <option value="wb" selected>الضفة الغربية (20₪)</option>
+                    <option value="jlm">القدس (30₪)</option>
+                    <option value="48">الداخل 48 (70₪)</option>
+                </select>
+            </div>
+            <div class="d-flex justify-content-between mb-3 text-muted">
+                <span class="fw-bold">رسوم التوصيل:</span>
+                <span id="deliveryFeeDisplay" class="fw-bold text-dark">₪20.00</span>
+            </div>
+            <div class="d-flex justify-content-between mb-4 pt-3 border-top">
+                <span class="fw-bold h4 m-0 text-dark">المجموع:</span>
+                <span id="cartTotal" class="fw-bold h3 m-0" style="color: var(--spring-primary);">₪0.00</span>
+            </div>
+            <button class="btn w-100 rounded-pill py-3 fw-bold shadow-lg fs-5 text-white" onclick="sendToWhatsApp()" style="background: linear-gradient(45deg, #25d366, #128c7e); border: none;">
+                إرسال الطلب عبر واتساب 💬
+            </button>
+        </div>
+    </div>
+
+    <div class="cart-float" data-bs-toggle="offcanvas" data-bs-target="#cartSidebar" title="السلة">
+        🛍️ <span class="badge cart-count">0</span>
+    </div>
+    
+    <a href="https://wa.me/972598439251" class="whatsapp-float" target="_blank" title="تواصل معنا">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA">
+    </a>
+
+    <footer class="bg-white py-5 mt-5 border-top position-relative z-1">
+        <div class="container">
+            <div class="row g-5 align-items-center">
+                <div class="col-md-4 text-center text-md-start">
+                    <img src="assets/images/logo.png" alt="Bella Kids Logo" height="80" class="mb-3">
+                    <p class="text-muted fw-bold">أزياء صيفية منعشة لأطفالكم. الجودة، الأناقة، والراحة في كل قطعة.</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <h5 class="fw-bold mb-4" style="color: var(--spring-accent);">زوروا متجرنا</h5>
+                    <a href="https://www.google.com/maps?q=W674+FX5,+Al-Bireh" target="_blank" class="text-decoration-none">
+                        <div class="p-4 rounded-4 border d-flex flex-column align-items-center bg-light shadow-sm" style="border: 2px dashed var(--spring-primary) !important; transition: transform 0.3s;">
+                            <span class="fs-1 mb-2">📍</span>
+                            <span class="fw-bold text-dark fs-5">فتح في خرائط جوجل</span>
+                            <span class="text-muted mt-2">البيرة، رام الله</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4 text-center text-md-end">
+                    <h5 class="fw-bold mb-4" style="color: var(--spring-accent);">تواصل معنا</h5>
+                    <div class="d-flex gap-3 justify-content-center justify-content-md-end mb-4">
+                        <a href="https://www.facebook.com/1BellaKids" target="_blank" class="p-3 bg-light rounded-circle shadow-sm" style="color: #1877F2;">
+                            <svg width="30" height="30" fill="currentColor" viewBox="0 0 24 24"><path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z"/></svg>
+                        </a>
+                        <a href="https://www.instagram.com/bellakids.ps/" target="_blank" class="p-3 bg-light rounded-circle shadow-sm" style="color: #E1306C;">
+                            <svg width="30" height="30" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                        </a>
+                    </div>
+                    <p class="text-muted fw-bold">© 2026 Bella Kids. جميع الحقوق محفوظة.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="js/app.js"></script>
+
+    <script>
+        // 1. INITIALIZE AOS
+        AOS.init({ duration: 1000, once: true, offset: 50 });
+
+        // 2. NAVBAR SCROLL EFFECT
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('main-nav');
+            if(window.scrollY > 50) nav.classList.add('scrolled');
+            else nav.classList.remove('scrolled');
+        });
+
+        // 3. SPRING PARTICLE ENGINE (CANVAS)
+        const canvas = document.getElementById('spring-dust');
+        const ctx = canvas.getContext('2d');
+        let width, height, particles;
+
+        function initParticles() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            particles = [];
+            const particleCount = window.innerWidth < 768 ? 40 : 80;
+
+            for(let i=0; i<particleCount; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    r: Math.random() * 3 + 1, // Petal size
+                    dx: (Math.random() - 0.5) * 1.5, // sway left/right
+                    dy: Math.random() * 1.5 + 0.5, // float gently DOWN
+                    color: ['#FF9F1C', '#FFBF69', '#2EC4B6', '#ffffff'][Math.floor(Math.random() * 4)],
+                    alpha: Math.random() * 0.6 + 0.2
+                });
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${hexToRgb(p.color)}, ${p.alpha})`;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = p.color;
+                ctx.fill();
+
+                p.x += Math.sin(p.y * 0.01) * 0.5 + p.dx; // subtle sway
+                p.y += p.dy;
+
+                // Reset if they hit the bottom
+                if(p.y > height + 10) { p.y = -10; p.x = Math.random() * width; }
+                if(p.x < -10) p.x = width + 10;
+                if(p.x > width + 10) p.x = -10;
+            });
+            requestAnimationFrame(animateParticles);
+        }
+
+        function hexToRgb(hex) {
+            const bigint = parseInt(hex.replace('#',''), 16);
+            const r = (bigint >> 16) & 255;
+            const g = (bigint >> 8) & 255;
+            const b = bigint & 255;
+            return `${r},${g},${b}`;
+        }
+
+        window.addEventListener('resize', initParticles);
+        initParticles();
+        animateParticles();
+
+        // 4. OVERRIDE RENDER LOGIC FOR SEASON CARDS
+        const originalFilterGrid = window.filterGrid;
+        window.filterGrid = function() {
+            const grid = document.getElementById('product-grid');
+            const emptyState = document.getElementById('empty-state');
+            if (!grid) return;
+            
+            const searchInput = document.getElementById('productSearch');
+            const catDropdown = document.getElementById('categoryFilter');
+            const ageDropdown = document.getElementById('ageFilter');
+            const typeDropdown = document.getElementById('typeFilter'); 
+            
+            const term = searchInput ? searchInput.value.toLowerCase() : '';
+            const category = catDropdown ? catDropdown.value : 'all';
+            const age = ageDropdown ? ageDropdown.value : 'all';
+            const type = typeDropdown ? typeDropdown.value : 'all';
+            
+            const filtered = state.products.filter(p => {
+                // CORE LOGIC: ONLY SHOW IF isSeason IS TRUE
+                if (!p.isSeason) return false; 
+
+                const matchesCategory = (category === 'all') ? true : (p.category && p.category.includes(category));
+                const nameMatch = (p.name_en||'').toLowerCase().includes(term) || (p.name_ar||'').toLowerCase().includes(term) || (p.itemId||'').toLowerCase().includes(term);
+                
+                let matchesAge = true;
+                if (age !== 'all') {
+                    const productSizes = (p.sizes || []).map(s => s.trim().toUpperCase());
+                    matchesAge = productSizes.includes(age.toUpperCase());
+                }
+
+                let matchesType = true;
+                if (type !== 'all') {
+                    matchesType = p.subCategory === type;
+                }
+
+                return matchesCategory && nameMatch && matchesAge && matchesType;
+            });
+            
+            grid.innerHTML = '';
+            
+            if(filtered.length === 0) {
+                emptyState.classList.remove('d-none');
+            } else {
+                emptyState.classList.add('d-none');
+                
+                filtered.forEach((p, index) => {
+                    const delay = (index % 4) * 100;
+                    
+                    const firstImg = (p.images && p.images.length > 0) ? p.images[0] : null;
+                    let imgUrl = 'assets/images/logo.png';
+                    if (firstImg) {
+                        const actualPath = (typeof firstImg === 'object' && firstImg.url) ? firstImg.url : firstImg;
+                        imgUrl = (actualPath.startsWith('http') || actualPath.startsWith('data:')) ? actualPath : 'uploads/' + (actualPath.startsWith('/') ? actualPath.substring(1) : actualPath);
+                    }
+                    
+                    const col = document.createElement('div');
+                    col.className = 'col-6 col-md-4 col-lg-3 season-card-wrapper';
+                    col.setAttribute('data-aos', 'fade-up');
+                    col.setAttribute('data-aos-delay', delay);
+                    
+                    let stockBadge = '';
+                    let actionBtn = `<button class="spring-add-btn mt-3" onclick="openProductModal('${p._id}')">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                                        إضافة للسلة
+                                     </button>`;
+                    
+                    if (!p.inStock) {
+                        stockBadge = `<div class="position-absolute px-4 py-2 fw-bold text-center" style="top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.75); color:white; border-radius:30px; z-index:10; white-space:nowrap; backdrop-filter:blur(5px);">نفذت الكمية</div>`;
+                        actionBtn = `<button class="btn btn-secondary w-100 mt-3 rounded-pill fw-bold py-2" disabled>غير متوفر</button>`;
+                    }
+
+                    col.innerHTML = `
+                        <div class="season-product-card cursor-pointer" onclick="openProductModal('${p._id}')">
+                            <div class="season-badge">🌸 صيفي / ربيعي</div>
+                            <div class="season-card-img-container">
+                                <img src="${imgUrl}" alt="${p.name_ar}">
+                                ${stockBadge}
+                            </div>
+                            <div class="card-body px-2 py-3 d-flex flex-column text-center">
+                                <div class="text-muted small mb-1 fw-bold">${p.itemId || ''}</div>
+                                <h5 class="fw-bold mb-2 text-truncate px-1" style="color: #2d3436;">${p.name_ar}</h5>
+                                <div class="mt-auto d-flex justify-content-center align-items-center gap-2">
+                                    <span class="fs-4 fw-black" style="color: var(--spring-primary);">₪${p.price}</span>
+                                    ${p.oldPrice ? `<span class="text-decoration-line-through text-muted small fw-bold">₪${p.oldPrice}</span>` : ''}
+                                </div>
+                                <div onclick="event.stopPropagation()">
+                                    ${actionBtn}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(col);
+                });
+            }
+        };
+
+        // 5. POPULATE DROPDOWNS based ONLY on Season products
+        const originalFetch = window.fetchProducts;
+        if(typeof originalFetch === 'function') {
+            window.fetchProducts = async function() {
+                await originalFetch(); 
+                
+                const seasonItems = state.products.filter(p => p.isSeason);
+                const ages = new Set();
+                const types = new Set();
+                
+                seasonItems.forEach(p => {
+                    if(p.sizes) p.sizes.forEach(s => ages.add(s.trim()));
+                    if(p.subCategory) types.add(p.subCategory);
+                });
+
+                const ageSelect = document.getElementById('ageFilter');
+                if(ageSelect) {
+                    Array.from(ages).sort().forEach(age => {
+                        ageSelect.innerHTML += `<option value="${age}">${age}</option>`;
+                    });
+                }
+
+                const typeMap = {
+                    "pajamas": "بيجامات", "sportswear": "رياضي", "formal": "رسمي",
+                    "overalls": "أفرهولات", "pants": "بناطيل", "shirts": "قمصان",
+                    "dresses": "فساتين", "shoes": "أحذية", "bags": "حقائب"
+                };
+
+                const typeSelect = document.getElementById('typeFilter');
+                if(typeSelect) {
+                    Array.from(types).sort().forEach(type => {
+                        if(type !== 'all') {
+                            const label = typeMap[type] || type;
+                            typeSelect.innerHTML += `<option value="${type}">${label}</option>`;
+                        }
+                    });
+                }
+                
+                window.filterGrid();
+            };
+        }
+    </script>
+</body>
+</html>
