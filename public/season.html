@@ -251,30 +251,32 @@
             opacity: 1;
         }
 
-        .season-badge {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(45deg, var(--spring-primary), #FF5A5F);
-            color: white;
-            padding: 8px 18px;
-            border-radius: 25px;
-            font-size: 0.85rem;
-            font-weight: 900;
-            letter-spacing: 0.5px;
-            z-index: 10;
-            box-shadow: 0 8px 20px rgba(255, 159, 28, 0.4);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            animation: pulseBadge 2.5s infinite;
-        }
+       .season-badge {
+    position: absolute;
+    top: 10px;        /* Moves it closer to the top edge */
+    right: 10px;      /* Moves it closer to the right edge */
+    background: linear-gradient(45deg, var(--spring-primary), #FF5A5F);
+    color: white;
+    padding: 4px 10px; /* Reduced padding for a smaller look */
+    border-radius: 12px; /* Slightly tighter corners for the smaller size */
+    font-size: 0.7rem;  /* Smaller text size */
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    z-index: 10;
+    box-shadow: 0 4px 10px rgba(255, 159, 28, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    animation: pulseBadge 2.5s infinite;
+    pointer-events: none; /* Ensures it doesn't interfere with clicking the card */
+}
 
-        @keyframes pulseBadge {
-            0% { transform: scale(1); box-shadow: 0 8px 20px rgba(255, 159, 28, 0.4); }
-            50% { transform: scale(1.05); box-shadow: 0 12px 25px rgba(255, 159, 28, 0.6); }
-            100% { transform: scale(1); box-shadow: 0 8px 20px rgba(255, 159, 28, 0.4); }
-        }
+/* Adjusted animation for the smaller scale */
+@keyframes pulseBadge {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+}
 
         .season-card-img-container {
             position: relative;
