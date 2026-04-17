@@ -751,6 +751,19 @@
                         actionBtn = `<button class="btn btn-secondary w-100 mt-3 rounded-pill fw-bold py-2" disabled>غير متوفر</button>`;
                     }
 
+                    // Generate Sizes HTML
+                    let sizesHtml = '';
+                    if (p.sizes && p.sizes.length > 0) {
+                        const sizesBadges = p.sizes.map(s => {
+                            const isOOS = p.outOfStockSizes && p.outOfStockSizes.some(o => o.trim().toUpperCase() === s.trim().toUpperCase());
+                            if (isOOS) {
+                                return `<span class="badge bg-light text-muted border border-light" style="margin: 2px; text-decoration: line-through; opacity: 0.6; font-size: 0.7rem;">${s}</span>`;
+                            }
+                            return `<span class="badge bg-white text-dark border" style="margin: 2px; font-size: 0.7rem;">${s}</span>`;
+                        }).join('');
+                        sizesHtml = `<div class="mt-2 mb-2 d-flex flex-wrap justify-content-center gap-1">${sizesBadges}</div>`;
+                    }
+
                     col.innerHTML = `
                         <div class="season-product-card cursor-pointer" onclick="openProductModal('${p._id}')">
                             <div class="season-badge">🌸 صيفي / ربيعي</div>
@@ -761,6 +774,7 @@
                             <div class="card-body px-2 py-3 d-flex flex-column text-center">
                                 <div class="text-muted small mb-1 fw-bold">${p.itemId || ''}</div>
                                 <h5 class="fw-bold mb-2 text-truncate px-1" style="color: #2d3436;">${p.name_ar}</h5>
+                                ${sizesHtml}
                                 <div class="mt-auto d-flex justify-content-center align-items-center gap-2">
                                     <span class="fs-4 fw-black" style="color: var(--spring-primary);">₪${p.price}</span>
                                     ${p.oldPrice ? `<span class="text-decoration-line-through text-muted small fw-bold">₪${p.oldPrice}</span>` : ''}
