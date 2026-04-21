@@ -72,7 +72,7 @@
         <div class="row mb-4 align-items-center mt-5 border-top pt-4">
             <div class="col-md-12 mb-3">
                 <h2 class="fw-bold m-0">لوحة الإحصائيات 📊</h2>
-                <p class="text-muted small">نظرة عامة على حالة المخزون والمنتجات في المتجر.</p>
+                <p class="text-muted small">نظرة عامة مفصلة على حالة المخزون والمنتجات في المتجر.</p>
             </div>
             
             <div class="col-md-3 col-sm-6 mb-3">
@@ -90,20 +90,83 @@
                     <p class="m-0 fw-bold mt-1">نفدت كميتها</p>
                 </div>
             </div>
-            
+
             <div class="col-md-3 col-sm-6 mb-3">
-                <div class="card admin-card p-4 text-center text-dark" style="background: linear-gradient(45deg, #fdcb6e, #ffeaa7);">
-                    <div class="fs-1 mb-2">✨</div>
-                    <h2 class="fw-bold m-0" id="statEidProducts">0</h2>
-                    <p class="m-0 fw-bold mt-1">تشكيلة العيد</p>
+                <div class="card admin-card p-4 text-center text-white" style="background: linear-gradient(45deg, #e17055, #fab1a0);">
+                    <div class="fs-1 mb-2">🔥</div>
+                    <h2 class="fw-bold m-0" id="statSaleProducts">0</h2>
+                    <p class="m-0 fw-bold mt-1">منتجات عليها عروض</p>
                 </div>
             </div>
-            
+
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card admin-card p-4 text-center text-white" style="background: linear-gradient(45deg, #f39c12, #f1c40f);">
+                    <div class="fs-1 mb-2">⚠️</div>
+                    <h2 class="fw-bold m-0" id="statLowStock">0</h2>
+                    <p class="m-0 fw-bold mt-1">نواقص في المقاسات</p>
+                </div>
+            </div>
+
             <div class="col-md-3 col-sm-6 mb-3">
                 <div class="card admin-card p-4 text-center text-white" style="background: linear-gradient(45deg, #00b894, #55efc4);">
                     <div class="fs-1 mb-2">🌸</div>
-                    <h2 class="fw-bold m-0" id="statSeasonProducts">0</h2>
-                    <p class="m-0 fw-bold mt-1">منتجات المواسم</p>
+                    <h2 class="fw-bold m-0" id="statSpringProducts">0</h2>
+                    <p class="m-0 fw-bold mt-1">تشكيلة الربيع</p>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card admin-card p-4 text-center text-dark" style="background: linear-gradient(45deg, #fdcb6e, #ffeaa7);">
+                    <div class="fs-1 mb-2">☀️</div>
+                    <h2 class="fw-bold m-0" id="statSummerProducts">0</h2>
+                    <p class="m-0 fw-bold mt-1">تشكيلة الصيف</p>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card admin-card p-4 text-center text-white" style="background: linear-gradient(45deg, #d35400, #e67e22);">
+                    <div class="fs-1 mb-2">🍂</div>
+                    <h2 class="fw-bold m-0" id="statAutumnProducts">0</h2>
+                    <p class="m-0 fw-bold mt-1">تشكيلة الخريف</p>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card admin-card p-4 text-center text-white" style="background: linear-gradient(45deg, #0984e3, #81ecec);">
+                    <div class="fs-1 mb-2">❄️</div>
+                    <h2 class="fw-bold m-0" id="statWinterProducts">0</h2>
+                    <p class="m-0 fw-bold mt-1">تشكيلة الشتاء</p>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-sm-12 mb-3">
+                <div class="card admin-card p-4 text-center text-dark h-100 d-flex flex-column justify-content-center border" style="background: #fffdf5; border-color: #fdcb6e !important;">
+                    <div class="fs-1 mb-2">✨</div>
+                    <h2 class="fw-bold m-0" id="statEidProducts">0</h2>
+                    <p class="m-0 fw-bold mt-1 text-warning">تشكيلة العيد</p>
+                </div>
+            </div>
+
+            <div class="col-md-8 col-sm-12 mb-3">
+                <div class="card admin-card p-3 h-100 d-flex justify-content-center bg-white border">
+                    <h6 class="fw-bold text-muted mb-3 text-center">توزيع الأقسام</h6>
+                    <div class="d-flex justify-content-around align-items-center w-100 h-100">
+                        <div class="text-center">
+                            <span class="fs-2">👦</span>
+                            <h3 class="fw-bold m-0 mt-1 text-primary" id="statBoys">0</h3>
+                            <small class="text-muted fw-bold">أولاد</small>
+                        </div>
+                        <div class="text-center">
+                            <span class="fs-2">👧</span>
+                            <h3 class="fw-bold m-0 mt-1" style="color: #e84393;" id="statGirls">0</h3>
+                            <small class="text-muted fw-bold">بنات</small>
+                        </div>
+                        <div class="text-center">
+                            <span class="fs-2">🍼</span>
+                            <h3 class="fw-bold m-0 mt-1 text-success" id="statNewborn">0</h3>
+                            <small class="text-muted fw-bold">مواليد</small>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -299,20 +362,48 @@
             window.location.href = 'login';
         }
 
-        // NEW: Function to dynamically update the analytics dashboard
+        // FULLY UPDATED: Function to dynamically update the expanded analytics dashboard
         function updateAnalytics() {
+            // General metrics
             const total = allProducts.length;
             const oos = allProducts.filter(p => !p.inStock).length;
-            const eid = allProducts.filter(p => p.isEid).length;
-            const season = allProducts.filter(p => p.isSpring || p.isSummer || p.isAutumn || p.isWinter).length;
             
+            // New Warning & Offer metrics
+            const onSale = allProducts.filter(p => p.oldPrice && p.oldPrice > p.price).length;
+            const lowStock = allProducts.filter(p => p.inStock && p.outOfStockSizes && p.outOfStockSizes.length > 0).length;
+            
+            // Season metrics
+            const spring = allProducts.filter(p => p.isSpring).length;
+            const summer = allProducts.filter(p => p.isSummer).length;
+            const autumn = allProducts.filter(p => p.isAutumn).length;
+            const winter = allProducts.filter(p => p.isWinter).length;
+            const eid = allProducts.filter(p => p.isEid).length;
+            
+            // Category Breakdown metrics
+            const boys = allProducts.filter(p => p.category === 'boys').length;
+            const girls = allProducts.filter(p => p.category === 'girls').length;
+            const newborn = allProducts.filter(p => p.category === 'newborn').length;
+            
+            // Update the UI (Row 1)
             document.getElementById('statTotalProducts').innerText = total;
             document.getElementById('statOutOfStock').innerText = oos;
+            document.getElementById('statSaleProducts').innerText = onSale;
+            document.getElementById('statLowStock').innerText = lowStock;
+            
+            // Update the UI (Row 2)
+            document.getElementById('statSpringProducts').innerText = spring;
+            document.getElementById('statSummerProducts').innerText = summer;
+            document.getElementById('statAutumnProducts').innerText = autumn;
+            document.getElementById('statWinterProducts').innerText = winter;
+
+            // Update the UI (Row 3)
             document.getElementById('statEidProducts').innerText = eid;
-            document.getElementById('statSeasonProducts').innerText = season;
+            document.getElementById('statBoys').innerText = boys;
+            document.getElementById('statGirls').innerText = girls;
+            document.getElementById('statNewborn').innerText = newborn;
         }
 
-        // NEW: Function to filter table items via the search bar
+        // Function to filter table items via the live search bar
         function filterAdminInventory() {
             const term = document.getElementById('adminProductSearch').value.toLowerCase().trim();
             const filtered = allProducts.filter(p => {
