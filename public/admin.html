@@ -10,7 +10,8 @@
     
     <style>
         body { font-family: 'Cairo', sans-serif; background-color: #f4f7f6; }
-        .admin-card { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .admin-card { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: transform 0.3s; }
+        .admin-card:hover { transform: translateY(-5px); }
         .product-img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; }
         .navbar { background: #2d3436; }
         .preview-wrapper { position: relative; width: 100px; text-align: center; }
@@ -68,12 +69,55 @@
             </div>
         </div>
         
-        <div class="row mb-4 align-items-center mt-5">
-            <div class="col-md-6">
+        <div class="row mb-4 align-items-center mt-5 border-top pt-4">
+            <div class="col-md-12 mb-3">
+                <h2 class="fw-bold m-0">لوحة الإحصائيات 📊</h2>
+                <p class="text-muted small">نظرة عامة على حالة المخزون والمنتجات في المتجر.</p>
+            </div>
+            
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card admin-card p-4 text-center text-white" style="background: linear-gradient(45deg, #0984e3, #74b9ff);">
+                    <div class="fs-1 mb-2">📦</div>
+                    <h2 class="fw-bold m-0" id="statTotalProducts">0</h2>
+                    <p class="m-0 fw-bold mt-1">إجمالي المنتجات</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card admin-card p-4 text-center text-white" style="background: linear-gradient(45deg, #d63031, #ff7675);">
+                    <div class="fs-1 mb-2">❌</div>
+                    <h2 class="fw-bold m-0" id="statOutOfStock">0</h2>
+                    <p class="m-0 fw-bold mt-1">نفدت كميتها</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card admin-card p-4 text-center text-dark" style="background: linear-gradient(45deg, #fdcb6e, #ffeaa7);">
+                    <div class="fs-1 mb-2">✨</div>
+                    <h2 class="fw-bold m-0" id="statEidProducts">0</h2>
+                    <p class="m-0 fw-bold mt-1">تشكيلة العيد</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card admin-card p-4 text-center text-white" style="background: linear-gradient(45deg, #00b894, #55efc4);">
+                    <div class="fs-1 mb-2">🌸</div>
+                    <h2 class="fw-bold m-0" id="statSeasonProducts">0</h2>
+                    <p class="m-0 fw-bold mt-1">منتجات المواسم</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4 align-items-center mt-5 border-top pt-4">
+            <div class="col-md-5">
                 <h2 class="fw-bold m-0">المخزون والمنتجات</h2>
                 <p class="text-muted small">إدارة الألوان، المقاسات، والأسعار والمواسم.</p>
             </div>
-            <div class="col-md-6 text-md-end">
+            <div class="col-md-7 text-md-end d-flex gap-2 justify-content-md-end flex-wrap">
+                <div class="position-relative" style="width: 250px;">
+                    <input type="text" id="adminProductSearch" class="form-control rounded-pill pe-5 shadow-sm" placeholder="بحث بـ ID أو الاسم..." onkeyup="filterAdminInventory()">
+                    <span class="position-absolute top-50 end-0 translate-middle-y me-3 text-muted">🔍</span>
+                </div>
                 <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="openAddModal()">
                     + إضافة منتج جديد
                 </button>
@@ -255,11 +299,38 @@
             window.location.href = 'login';
         }
 
+        // NEW: Function to dynamically update the analytics dashboard
+        function updateAnalytics() {
+            const total = allProducts.length;
+            const oos = allProducts.filter(p => !p.inStock).length;
+            const eid = allProducts.filter(p => p.isEid).length;
+            const season = allProducts.filter(p => p.isSpring || p.isSummer || p.isAutumn || p.isWinter).length;
+            
+            document.getElementById('statTotalProducts').innerText = total;
+            document.getElementById('statOutOfStock').innerText = oos;
+            document.getElementById('statEidProducts').innerText = eid;
+            document.getElementById('statSeasonProducts').innerText = season;
+        }
+
+        // NEW: Function to filter table items via the search bar
+        function filterAdminInventory() {
+            const term = document.getElementById('adminProductSearch').value.toLowerCase().trim();
+            const filtered = allProducts.filter(p => {
+                return (p.itemId && p.itemId.toLowerCase().includes(term)) || 
+                       (p.name_ar && p.name_ar.toLowerCase().includes(term)) || 
+                       (p.name_en && p.name_en.toLowerCase().includes(term));
+            });
+            renderInventory(filtered);
+        }
+
         async function fetchInventory() {
             try {
                 const res = await fetch(API_URL);
                 allProducts = await res.json();
-                renderInventory(allProducts);
+                
+                updateAnalytics(); // Call analytics updater
+                renderInventory(allProducts); // Render table
+                
             } catch (err) {
                 document.getElementById('inventoryList').innerHTML = `<tr><td colspan="8" class="text-center text-danger">خطأ في الاتصال</td></tr>`;
             }
@@ -274,7 +345,7 @@
         function renderInventory(products) {
             const tbody = document.getElementById('inventoryList');
             if(products.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5">القائمة فارغة</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5">القائمة فارغة أو لا توجد نتائج للبحث</td></tr>`;
                 return;
             }
 
@@ -348,7 +419,6 @@
             if (!formData.get('name_en')) formData.set('name_en', formData.get('name_ar')); 
             if (!formData.get('description_en')) formData.set('description_en', formData.get('description_ar')); 
 
-            // IMPORTANT: Append checkbox boolean states
             formData.set('isSpring', document.getElementById('isSpring').checked);
             formData.set('isSummer', document.getElementById('isSummer').checked);
             formData.set('isAutumn', document.getElementById('isAutumn').checked);
@@ -389,7 +459,6 @@
             document.getElementById('colors').value = p.colors ? p.colors.join(', ') : ''; 
             document.getElementById('description_ar').value = p.description_ar || '';
             
-            // Set 4 season switches
             document.getElementById('isSpring').checked = p.isSpring || false;
             document.getElementById('isSummer').checked = p.isSummer || false;
             document.getElementById('isAutumn').checked = p.isAutumn || false;
@@ -405,7 +474,6 @@
             document.getElementById('modalTitle').innerText = "إضافة منتج جديد";
             document.getElementById('editId').value = ""; 
             
-            // Reset 4 season switches
             document.getElementById('isSpring').checked = false;
             document.getElementById('isSummer').checked = false;
             document.getElementById('isAutumn').checked = false;
