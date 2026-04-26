@@ -181,6 +181,17 @@
                 <p class="text-muted small">إدارة الألوان، المقاسات، والأسعار والمواسم.</p>
             </div>
             <div class="col-md-7 text-md-end d-flex gap-2 justify-content-md-end flex-wrap">
+                <div class="d-flex gap-2 align-items-center bg-white p-2 rounded-pill shadow-sm border">
+                    <select id="bulkAction" class="form-select form-select-sm border-0 bg-light rounded-pill" style="width: auto; font-weight: bold;">
+                        <option value="">إجراء مجمع...</option>
+                        <option value="hide">إخفاء المحدد</option>
+                        <option value="unhide">إظهار المحدد</option>
+                        <option value="delete">حذف المحدد</option>
+                        <option value="duplicate">تكرار المحدد</option>
+                        <option value="hide_all_present">إخفاء جميع المعروض</option>
+                    </select>
+                    <button class="btn btn-dark btn-sm rounded-pill px-3" onclick="applyBulkAction()">تطبيق</button>
+                </div>
                 <div class="position-relative" style="width: 250px;">
                     <input type="text" id="adminProductSearch" class="form-control rounded-pill pe-5 shadow-sm" placeholder="بحث بـ ID أو الاسم..." onkeyup="filterAdminInventory()">
                     <span class="position-absolute top-50 end-0 translate-middle-y me-3 text-muted">🔍</span>
@@ -196,6 +207,7 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
+                            <th style="width: 40px;"><input type="checkbox" id="selectAll" class="form-check-input" onclick="toggleAll(this)"></th>
                             <th class="pe-4">الصورة</th>
                             <th>ID</th>
                             <th>الاسم</th>
@@ -358,6 +370,7 @@
         const modal = new bootstrap.Modal(document.getElementById('productModal'));
         const ADMIN_TOKEN = localStorage.getItem('adminToken');
         let allProducts = [];
+        let currentRenderedProducts = []; // TRACK RENDERED PRODUCTS FOR BULK ACTION
 
         fetchInventory();
 
@@ -366,7 +379,6 @@
             window.location.href = 'login';
         }
 
-        // FULLY UPDATED: Function to dynamically update the expanded analytics dashboard
         function updateAnalytics() {
             // General metrics
             const total = allProducts.length;
@@ -407,7 +419,6 @@
             document.getElementById('statNewborn').innerText = newborn;
         }
 
-        // NEW: Function to filter table based on Analytics Card Clicks
         function filterByStat(statType) {
             let filtered = [];
             const titleElement = document.getElementById('inventoryTitle');
@@ -474,7 +485,6 @@
             document.getElementById('inventoryTitle').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // Function to filter table items via the live search bar
         function filterAdminInventory() {
             document.getElementById('inventoryTitle').innerText = "نتائج البحث";
             const term = document.getElementById('adminProductSearch').value.toLowerCase().trim();
@@ -488,7 +498,8 @@
 
         async function fetchInventory() {
             try {
-                const res = await fetch(API_URL);
+                // Request ALL products, including hidden ones, for the admin dashboard
+                const res = await fetch(API_URL + '?all=true'); 
                 allProducts = await res.json();
                 
                 updateAnalytics(); // Call analytics updater
@@ -507,6 +518,8 @@
 
         function renderInventory(products) {
             const tbody = document.getElementById('inventoryList');
+            currentRenderedProducts = products; // Save state for bulk action hiding all filtered
+
             if(products.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5">القائمة فارغة أو لا توجد نتائج</td></tr>`;
                 return;
@@ -526,6 +539,10 @@
                     ? `<button onclick="toggleEid('${p._id}')" class="btn btn-sm btn-warning rounded-pill px-3 shadow-sm w-100 mt-1">✨ عيدي</button>`
                     : `<button onclick="toggleEid('${p._id}')" class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-sm w-100 mt-1">عادي</button>`;
                 
+                const hideBtn = p.isHidden 
+                    ? `<button onclick="toggleHide('${p._id}')" class="btn btn-sm btn-secondary rounded-pill px-3 shadow-sm w-100 mt-1">👁️ مخفي</button>`
+                    : `<button onclick="toggleHide('${p._id}')" class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-sm w-100 mt-1">👁️ إخفاء</button>`;
+
                 // Show season badges
                 let seasons = [];
                 if(p.isSpring) seasons.push('🌸');
@@ -534,8 +551,11 @@
                 if(p.isWinter) seasons.push('❄️');
                 const seasonBadges = seasons.length > 0 ? `<div class="mt-1 text-center bg-light border rounded px-1 shadow-sm" style="font-size: 0.9rem;">${seasons.join(' ')}</div>` : '';
 
+                const rowOpacity = p.isHidden ? 'opacity: 0.55;' : '';
+
                 return `
-                <tr>
+                <tr style="${rowOpacity}">
+                    <td><input type="checkbox" class="row-checkbox form-check-input" value="${p._id}"></td>
                     <td class="pe-4"><img src="${imgPath}" class="product-img shadow-sm"></td>
                     <td class="small fw-bold text-muted">${p.itemId || '-'}</td>
                     <td><div class="fw-bold text-dark">${p.name_ar || '-'}</div></td>
@@ -547,14 +567,67 @@
                     <td style="width: 110px;">
                         ${stockBtn}
                         ${eidBtn}
+                        ${hideBtn}
                         ${seasonBadges}
                     </td>
                     <td class="text-end ps-4">
-                        <button onclick="openEditModal('${p._id}')" class="btn btn-sm btn-primary px-3 rounded-pill me-1">تعديل</button>
-                        <button onclick="deleteProduct('${p._id}')" class="btn btn-sm btn-outline-danger px-3 rounded-pill">حذف</button>
+                        <button onclick="openEditModal('${p._id}')" class="btn btn-sm btn-primary px-3 rounded-pill me-1 mb-1">تعديل</button>
+                        <button onclick="deleteProduct('${p._id}')" class="btn btn-sm btn-outline-danger px-3 rounded-pill mb-1">حذف</button>
                     </td>
                 </tr>`;
             }).join('');
+        }
+
+        // --- BULK ACTIONS ---
+        function toggleAll(source) {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+        }
+
+        async function applyBulkAction() {
+            const action = document.getElementById('bulkAction').value;
+            if (!action) return alert("الرجاء تحديد إجراء");
+
+            let ids = [];
+            if (action === 'hide_all_present') {
+                ids = currentRenderedProducts.map(p => p._id);
+                if(ids.length === 0) return alert("لا توجد منتجات معروضة لإخفائها");
+                if (!confirm(`هل أنت متأكد من إخفاء جميع المنتجات المعروضة حالياً وعددها ${ids.length}؟`)) return;
+                await executeBulkAPI(ids, 'hide');
+            } else {
+                const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+                checkboxes.forEach(cb => ids.push(cb.value));
+                if (ids.length === 0) return alert("الرجاء تحديد منتجات أولاً");
+                
+                const actionText = document.getElementById('bulkAction').options[document.getElementById('bulkAction').selectedIndex].text;
+                if (!confirm(`هل أنت متأكد من (${actionText}) لـ ${ids.length} منتج؟`)) return;
+                await executeBulkAPI(ids, action);
+            }
+        }
+
+        async function executeBulkAPI(ids, action) {
+            try {
+                const res = await fetch('/api/products/bulk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': ADMIN_TOKEN },
+                    body: JSON.stringify({ ids, action })
+                });
+                if (res.ok) {
+                    const selAll = document.getElementById('selectAll');
+                    if (selAll) selAll.checked = false;
+                    document.getElementById('bulkAction').value = '';
+                    fetchInventory();
+                } else {
+                    alert("فشل الإجراء المجمع");
+                }
+            } catch(e) { alert("خطأ في الخادم"); }
+        }
+
+        async function toggleHide(id) {
+            try {
+                await fetch(`${API_URL}/${id}/toggle-hide`, { method: 'PUT', headers: { 'Authorization': ADMIN_TOKEN } });
+                fetchInventory();
+            } catch(e) { alert("خطأ في الاتصال"); }
         }
 
         async function toggleStock(id) {
