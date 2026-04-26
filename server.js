@@ -68,22 +68,35 @@ const ProductSchema = new mongoose.Schema({
     images: [mongoose.Schema.Types.Mixed], 
     inStock: { type: Boolean, default: true },
     isEid: { type: Boolean, default: false },
-    // THE 4 NEW SEASONAL FIELDS
     isSpring: { type: Boolean, default: false },
     isSummer: { type: Boolean, default: false },
     isAutumn: { type: Boolean, default: false },
     isWinter: { type: Boolean, default: false },
-    isHidden: { type: Boolean, default: false }, // NEW FIELD
+    isHidden: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 });
 const Product = mongoose.model('Product', ProductSchema);
 
-// --- SETTINGS MODEL ---
 const SettingsSchema = new mongoose.Schema({
     key: { type: String, required: true, unique: true },
     value: { type: String, required: true }
 });
 const Settings = mongoose.model('Settings', SettingsSchema);
+
+// --- NEW: PROMO MODEL ---
+const PromoSchema = new mongoose.Schema({
+    code: { type: String, required: true, unique: true, uppercase: true, trim: true },
+    discount: { type: Number, required: true },
+    discountType: { type: String, enum: ['percent', 'fixed'], default: 'percent' },
+    minPurchase: { type: Number, default: 0 },
+    startDate: { type: Date, default: Date.now },
+    endDate: { type: Date },
+    isActive: { type: Boolean, default: true },
+    usageLimit: { type: Number, default: 0 }, // 0 means unlimited
+    timesUsed: { type: Number, default: 0 },
+    createdAt: { type: Date, default: Date.now }
+});
+const Promo = mongoose.model('Promo', PromoSchema);
 
 // --- AUTH MIDDLEWARE (API) ---
 const requireAuth = (req, res, next) => {
@@ -216,6 +229,85 @@ app.get('/active-season', async (req, res) => {
     }
 });
 
+// --- NEW: PROMO ROUTES (ADMIN) ---
+app.get('/api/promos', requireAuth, async (req, res) => {
+    try {
+        const promos = await Promo.find().sort({ createdAt: -1 });
+        res.json(promos);
+    } catch (err) { res.status(500).json({ error: "Fetch error" }); }
+});
+
+app.post('/api/promos', requireAuth, async (req, res) => {
+    try {
+        let { code, discount, discountType, minPurchase, startDate, endDate, isActive, usageLimit } = req.body;
+        const newPromo = new Promo({
+            code: code.toUpperCase().trim(),
+            discount: Number(discount),
+            discountType,
+            minPurchase: Number(minPurchase) || 0,
+            startDate: startDate ? new Date(startDate) : Date.now(),
+            endDate: endDate ? new Date(endDate) : null,
+            isActive: isActive === 'true' || isActive === true,
+            usageLimit: Number(usageLimit) || 0
+        });
+        await newPromo.save();
+        res.status(201).json(newPromo);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/promos/:id', requireAuth, async (req, res) => {
+    try {
+        await Promo.findByIdAndDelete(req.params.id);
+        res.json({ message: "Deleted" });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/promos/:id/toggle', requireAuth, async (req, res) => {
+    try {
+        const promo = await Promo.findById(req.params.id);
+        if (promo) {
+            promo.isActive = !promo.isActive;
+            await promo.save();
+            res.json(promo);
+        } else { res.status(404).json({ error: "Not found" }); }
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- NEW: PROMO ROUTES (PUBLIC VALIDATION) ---
+app.post('/api/promos/validate', async (req, res) => {
+    try {
+        const { code, cartTotal } = req.body;
+        const promo = await Promo.findOne({ code: code.toUpperCase().trim() });
+        
+        if (!promo) return res.status(400).json({ error: "كود الخصم غير صحيح (Invalid Code)" });
+        if (!promo.isActive) return res.status(400).json({ error: "كود الخصم غير فعال (Inactive Code)" });
+        
+        const now = new Date();
+        if (promo.startDate && now < promo.startDate) return res.status(400).json({ error: "لم يبدأ عرض هذا الكود بعد (Code not started yet)" });
+        if (promo.endDate && now > promo.endDate) return res.status(400).json({ error: "انتهت صلاحية هذا الكود (Code expired)" });
+        
+        if (promo.usageLimit > 0 && promo.timesUsed >= promo.usageLimit) return res.status(400).json({ error: "تم تجاوز الحد الأقصى لاستخدام هذا الكود (Limit reached)" });
+        if (cartTotal < promo.minPurchase) return res.status(400).json({ error: `الحد الأدنى لتطبيق الخصم هو ₪${promo.minPurchase} (Minimum purchase not met)` });
+
+        res.json({
+            success: true,
+            discount: promo.discount,
+            discountType: promo.discountType,
+            code: promo.code,
+            minPurchase: promo.minPurchase
+        });
+    } catch (err) { res.status(500).json({ error: "Server Error" }); }
+});
+
+// Track promo usage after checkout
+app.post('/api/promos/use', async (req, res) => {
+    try {
+        const { code } = req.body;
+        await Promo.findOneAndUpdate({ code: code.toUpperCase().trim() }, { $inc: { timesUsed: 1 } });
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: "Server Error" }); }
+});
+
 // --- ROUTES ---
 app.post('/api/login', (req, res) => {
     const { password } = req.body;
@@ -236,8 +328,6 @@ app.post('/api/login', (req, res) => {
 
 app.get('/api/products', async (req, res) => {
     try {
-        // If ?all=true is in the query (used by admin dashboard), return all products.
-        // Otherwise (for normal shop users), exclude hidden products.
         const query = req.query.all === 'true' ? {} : { isHidden: { $ne: true } };
         const products = await Product.find(query).sort({ createdAt: -1 });
         res.json(products);
@@ -253,7 +343,6 @@ app.post('/api/products/bulk', requireAuth, async (req, res) => {
         
         if (action === 'delete') {
             const products = await Product.find({ _id: { $in: ids } });
-            // Clean up images from Google Cloud Storage
             for (const product of products) {
                 if (product.images && product.images.length > 0) {
                     for (const img of product.images) {
@@ -349,7 +438,6 @@ app.put('/api/products/:id', requireAuth, upload.array('images', 10), async (req
         product.inStock = inStock === 'true' || inStock === true;
         product.isEid = isEid === 'true' || isEid === true; 
         
-        // Update 4 seasonal values
         product.isSpring = isSpring === 'true' || isSpring === true;
         product.isSummer = isSummer === 'true' || isSummer === true;
         product.isAutumn = isAutumn === 'true' || isAutumn === true;
