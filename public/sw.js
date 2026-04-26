@@ -1,6 +1,6 @@
 // public/sw.js
 
-const cacheName = 'bella-v4'; // Increment version (v3 -> v4) to force an update
+const cacheName = 'bella-v5'; // Increment version (v3 -> v4) to force an update
 const staticAssets = [
   './',
   './index.html',
