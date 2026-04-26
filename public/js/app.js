@@ -12,6 +12,7 @@ const CONFIG = {
     UPLOAD_PATH: '/uploads/',
     CART_KEY: 'BELLA_KIDS_CART',
     LANG_KEY: 'BELLA_LANGUAGE',
+    PROMO_KEY: 'BELLA_PROMO_KEY',
     WHATSAPP_PHONE: '972598439251',
     DEFAULT_DELIVERY: 20,
     RECENTLY_VIEWED_KEY: 'BELLA_KIDS_RECENT',
@@ -40,6 +41,7 @@ const ITEM_TYPES = [
 let state = {
     products: [],      
     cart: JSON.parse(localStorage.getItem(CONFIG.CART_KEY)) || [],
+    appliedPromo: JSON.parse(localStorage.getItem(CONFIG.PROMO_KEY)) || null, // NEW PROMO STATE
     lang: localStorage.getItem(CONFIG.LANG_KEY) || 'ar', 
     currentCategory: 'all',
     selectedSize: null,
@@ -77,10 +79,7 @@ const I18N = {
 // HELPER: Handles both old strings and new object formats for images
 function resolveImage(imageInput) {
     if (!imageInput) return 'assets/images/placeholder.png';
-    
-    // NEW: If input is an object (from new schema), extract the URL
     const actualPath = (typeof imageInput === 'object' && imageInput.url) ? imageInput.url : imageInput;
-
     if (actualPath.startsWith('http') || actualPath.startsWith('data:')) return actualPath;
     return CONFIG.UPLOAD_PATH + (actualPath.startsWith('/') ? actualPath.substring(1) : actualPath);
 }
@@ -90,17 +89,16 @@ function getVariantId(imageInput) {
     if (typeof imageInput === 'object' && imageInput.variantId) {
         return imageInput.variantId;
     }
-    return ''; // No code available (or old data)
+    return ''; 
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     applyLanguageSettings();
     populateAgeFilter();
-    populateTypeFilter(); // NEW: Populate the type dropdown
+    populateTypeFilter(); 
 
     const path = window.location.pathname;
     
-    // Set category based on page URL
     if (path.includes('boys')) state.currentCategory = 'boys';
     else if (path.includes('girls')) state.currentCategory = 'girls';
     else if (path.includes('newborn')) state.currentCategory = 'newborn';
@@ -109,19 +107,15 @@ document.addEventListener('DOMContentLoaded', () => {
         initBalloons();
     }
     
-    // Sync dropdown if exists
     const catDropdown = document.getElementById('categoryFilter');
     if(catDropdown && state.currentCategory !== 'all') catDropdown.value = state.currentCategory;
 
     updateCartCounts();
     renderSidebarCart(); 
-    renderRecentlyViewedPageUI(); // NEW: Initial render of recently viewed section on page load
+    renderRecentlyViewedPageUI(); 
     fetchProducts();
-    
-    // FETCH THE CAROUSEL SLIDES
     fetchHeroSlides(); 
     
-    // Search listener
     const searchInput = document.getElementById('productSearch');
     if (searchInput) searchInput.addEventListener('keyup', () => filterGrid());
     
@@ -139,12 +133,10 @@ function populateAgeFilter() {
     });
 }
 
-// NEW: Populate Type Filter
 function populateTypeFilter() {
     const select = document.getElementById('typeFilter');
     if(!select) return;
     
-    // Default option
     const allOpt = document.createElement('option');
     allOpt.value = "all";
     allOpt.innerText = I18N[state.lang].all_types;
@@ -166,17 +158,14 @@ async function fetchProducts() {
         const res = await fetch(CONFIG.API_URL);
         let products = await res.json();
         
-        // --- ADDED: Shuffle the products array randomly ---
         for (let i = products.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [products[i], products[j]] = [products[j], products[i]];
         }
-        // --------------------------------------------------
 
         state.products = products;
         filterGrid(); 
 
-        // AUTO-OPEN PRODUCT LOGIC
         const urlParams = new URLSearchParams(window.location.search);
         const autoOpenId = urlParams.get('id');
         
@@ -208,16 +197,12 @@ function filterGrid() {
     const filtered = state.products.filter(p => {
         let matchesCategory = true;
         
-        // NEW: Detect if we are on the Eid page to enforce the "Eid Collection" filter
         if (window.location.pathname.includes('eid')) {
-            if (!p.isEid) return false; // Exclude non-eid items immediately
-            
-            // Allow the dropdown on the Eid page to filter further between Boys/Girls/Newborn
+            if (!p.isEid) return false; 
             if (category !== 'all') {
                 matchesCategory = p.category && p.category.includes(category);
             }
         } else {
-            // Standard page matching
             matchesCategory = (category === 'all' || category === 'featured') ? true : (p.category && p.category.includes(category));
         }
 
@@ -227,7 +212,6 @@ function filterGrid() {
         if (age !== 'all') {
             const productSizes = (p.sizes || []).map(s => s.trim().toUpperCase());
             
-            // Logic for Range matching (e.g., 0-3M)
             if (age === "0-3M") {
                 const range = ["0-3M", "1M", "2M", "3M", "NEWBORN"];
                 matchesAge = productSizes.some(s => range.includes(s));
@@ -241,7 +225,6 @@ function filterGrid() {
                 const range = ["9-12M", "9M", "10M", "11M", "12M"];
                 matchesAge = productSizes.some(s => range.includes(s));
             } else {
-                // Exact match for everything else (2Y, 3Y, etc.)
                 matchesAge = productSizes.includes(age.toUpperCase());
             }
         }
@@ -287,7 +270,6 @@ function renderProducts(products, container) {
 
         const productUrl = `${window.location.origin}${window.location.pathname}?id=${p._id}`;
 
-        // --- NEW: Generate Sizes HTML for the card ---
         let sizesHtml = '';
         if (p.sizes && p.sizes.length > 0) {
             const sizesBadges = p.sizes.map(s => {
@@ -299,7 +281,6 @@ function renderProducts(products, container) {
             }).join('');
             sizesHtml = `<div class="mt-2 mb-2 d-flex flex-wrap justify-content-center gap-1">${sizesBadges}</div>`;
         }
-        // ---------------------------------------------
 
         container.innerHTML += `
         <div class="col-6 col-md-4 col-lg-3 mb-4" data-aos="fade-up">
@@ -324,12 +305,8 @@ function renderProducts(products, container) {
     });
 }
 
-// --- RECENTLY VIEWED LOGIC ---
 function trackRecentlyViewed(product) {
-    // Remove if already exists to bring it to the front
     let recent = state.recentlyViewed.filter(p => p._id !== product._id);
-    
-    // Add to the beginning of the array
     recent.unshift({
         _id: product._id,
         name_ar: product.name_ar,
@@ -337,19 +314,13 @@ function trackRecentlyViewed(product) {
         price: product.price,
         images: product.images
     });
-
-    // Enforce the limit
     state.recentlyViewed = recent.slice(0, CONFIG.MAX_RECENT);
     localStorage.setItem(CONFIG.RECENTLY_VIEWED_KEY, JSON.stringify(state.recentlyViewed));
-
-    // NEW: Update the on-page UI if the container exists
     renderRecentlyViewedPageUI();
 }
 
 function renderRecentlyViewedUI() {
-    // Skip the first item (index 0) because that is the product currently open in the modal
     const displayList = state.recentlyViewed.slice(1); 
-
     if (displayList.length === 0) return; 
 
     let recentHtml = `
@@ -379,24 +350,19 @@ function renderRecentlyViewedUI() {
     const modalBody = document.querySelector('#productModal .modal-body');
     if (!modalBody) return;
 
-    // Remove existing recently viewed section to prevent duplicates
     const oldRecent = modalBody.querySelector('.recently-viewed-section');
     if (oldRecent) oldRecent.remove();
     
-    // Inject the newly generated HTML
     const wrapper = document.createElement('div');
     wrapper.className = 'recently-viewed-section';
     wrapper.innerHTML = recentHtml;
     modalBody.appendChild(wrapper);
 }
 
-// NEW: Function to render recently viewed items on the page (under search filters)
-// NEW: Function to render recently viewed items on the page (under search filters)
 function renderRecentlyViewedPageUI() {
     const pageContainer = document.getElementById('recently-viewed-page-container');
     if (!pageContainer) return;
     
-    // Get up to 4 most recently viewed items
     const displayList = state.recentlyViewed.slice(0, 4);
     
     if (displayList.length === 0) {
@@ -417,7 +383,6 @@ function renderRecentlyViewedPageUI() {
         const name = state.lang === 'ar' ? (item.name_ar || item.name_en) : (item.name_en || item.name_ar);
         const img = resolveImage(item.images && item.images[0] ? item.images[0] : null);
         
-        // FIXED: Removed data-aos="fade-up" so it appears instantly without needing a refresh
         recentHtml += `
             <div class="col-6 col-md-4 col-lg-3">
                 <div class="card product-card h-100 border-0 shadow-sm" style="cursor: pointer;" onclick="openProductModal('${item._id}')">
@@ -436,7 +401,39 @@ function renderRecentlyViewedPageUI() {
     recentHtml += `</div></div>`;
     pageContainer.innerHTML = recentHtml;
 }
-// -----------------------------
+
+function inject3DTeddyBear() {
+    const cartBtn = document.getElementById('modalAddToCart');
+    if (!cartBtn) return;
+    
+    const btnContainer = cartBtn.parentElement;
+
+    const existingBear = document.querySelector('.teddy-3d-wrapper');
+    if (existingBear) existingBear.remove();
+
+    const bearWrapper = document.createElement('div');
+    bearWrapper.className = 'teddy-3d-wrapper';
+
+    const messages = [
+        "خذه معي للمنزل! ❤️✨",
+        "سأبدو رائعاً فيه! 😍",
+        "لا تتركني هنا وحيداً! 🥺🧸",
+        "هذا المقاس مناسب جداً! 👌",
+        "العرض سينتهي قريباً! 🔥"
+    ];
+    const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+
+    bearWrapper.innerHTML = `
+        <div class="teddy-3d-bear">🧸</div>
+        <div class="teddy-3d-bubble">${randomMsg}</div>
+    `;
+
+    if (window.getComputedStyle(btnContainer).position === 'static') {
+        btnContainer.style.position = 'relative';
+    }
+
+    btnContainer.appendChild(bearWrapper);
+}
 
 function openProductModal(id) {
     const p = state.products.find(x => x._id === id);
@@ -444,7 +441,6 @@ function openProductModal(id) {
     state.selectedSize = null;
     state.modalQty = 1; 
 
-    // --- TRACK VIEW ---
     trackRecentlyViewed(p);
 
     const t = I18N[state.lang];
@@ -480,23 +476,16 @@ function openProductModal(id) {
         : t.currency + p.price;
 
     const sizes = (p.sizes && p.sizes.length) ? p.sizes : ['One Size'];
-    const oos = p.outOfStockSizes || []; // Get out of stock sizes
+    const oos = p.outOfStockSizes || []; 
 
-    // UPDATED SIZES RENDER LOGIC
     document.getElementById('sizeSelector').innerHTML = sizes.map(s => {
-        // Check if this specific size exists in the Out Of Stock list
         const isOOS = oos.some(o => o.trim().toUpperCase() === s.trim().toUpperCase());
-        
         if (isOOS) {
-            // Render a disabled, crossed-out button for out-of-stock sizes
             return `<button type="button" class="btn btn-outline-danger btn-sm m-1" disabled style="text-decoration: line-through; opacity: 0.5; cursor: not-allowed;">${s}</button>`;
         }
-        
-        // Render normal clickable button
         return `<button type="button" class="btn btn-outline-secondary btn-sm m-1" onclick="selectSize(this, '${s}')">${s}</button>`;
     }).join('');
 
-    // Thumbnails
     const thumbContainer = document.getElementById('thumbnailsSelector');
     if (thumbContainer) {
         if (images.length > 1) {
@@ -536,15 +525,14 @@ function openProductModal(id) {
         };
     }
 
-    // --- ADD RECENTLY VIEWED SECTION TO MODAL BEFORE SHOWING IT ---
     renderRecentlyViewedUI();
+    inject3DTeddyBear();
 
     new bootstrap.Modal(document.getElementById('productModal')).show();
 }
 
 function selectSize(el, s) {
     document.querySelectorAll('#sizeSelector .btn').forEach(b => {
-        // Skip modifying disabled buttons
         if (!b.disabled) b.classList.replace('btn-dark', 'btn-outline-secondary');
     });
     el.classList.replace('btn-outline-secondary', 'btn-dark');
@@ -603,16 +591,55 @@ function updateCartCounts() {
     document.querySelectorAll('.cart-count').forEach(e => e.innerText = c); 
 }
 
+// --- NEW PROMO UI LOGIC ---
+window.applyPromoCode = async function() {
+    const codeInput = document.getElementById('promoCodeInput');
+    const msgEl = document.getElementById('promoMessage');
+    if (!codeInput || !codeInput.value.trim()) return;
+
+    const code = codeInput.value.trim().toUpperCase();
+    let sub = state.cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+
+    try {
+        const res = await fetch('/api/promos/validate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, cartTotal: sub })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            msgEl.innerText = data.error;
+            msgEl.className = 'small mt-2 text-danger fw-bold';
+        } else {
+            state.appliedPromo = data;
+            localStorage.setItem(CONFIG.PROMO_KEY, JSON.stringify(data));
+            renderSidebarCart(); 
+        }
+    } catch (e) {
+        msgEl.innerText = "خطأ في الاتصال";
+        msgEl.className = 'small mt-2 text-danger fw-bold';
+    }
+};
+
+window.removePromoCode = function() {
+    state.appliedPromo = null;
+    localStorage.removeItem(CONFIG.PROMO_KEY);
+    renderSidebarCart();
+};
+
 function renderSidebarCart() {
     const div = document.getElementById('cartItems');
     if(!div) return;
     div.innerHTML = '';
     const t = I18N[state.lang];
+    
     if(state.cart.length === 0) { 
         div.innerHTML = `<div class="text-center py-4 text-muted">${t.cart_empty}</div>`; 
         updateCartTotalUI();
         return; 
     }
+    
     state.cart.forEach((x, i) => {
         const codeHtml = x.variantId ? `<br><span class="text-success small fw-bold">${t.variant_code}: ${x.variantId}</span>` : '';
         
@@ -629,6 +656,38 @@ function renderSidebarCart() {
                 <button onclick="removeFromCart(${i})" class="btn btn-sm text-danger">×</button>
             </div>`;
     });
+
+    // --- PROMO CODE UI INJECTION ---
+    let discountDisplay = '';
+    if (state.appliedPromo) {
+        let sub = state.cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+        let discountAmount = state.appliedPromo.discountType === 'percent' 
+            ? sub * (state.appliedPromo.discount / 100) 
+            : state.appliedPromo.discount;
+        if(discountAmount > sub) discountAmount = sub;
+
+        discountDisplay = `
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top text-success fw-bold">
+                <span>كود الخصم (${state.appliedPromo.code})</span>
+                <span>-${t.currency}${discountAmount.toFixed(2)}</span>
+            </div>
+        `;
+    }
+
+    div.innerHTML += `
+        <div class="mt-4 p-3 bg-light rounded-3 border border-secondary shadow-sm">
+            <label class="small fw-bold mb-2 text-dark">${state.lang === 'ar' ? 'لديك كود خصم؟ 🎟️' : 'Have a promo code? 🎟️'}</label>
+            <div class="input-group input-group-sm">
+                <input type="text" id="promoCodeInput" class="form-control fw-bold text-primary" placeholder="${state.lang === 'ar' ? 'أدخل الكود هنا' : 'Enter code'}" style="text-transform: uppercase;" value="${state.appliedPromo ? state.appliedPromo.code : ''}" ${state.appliedPromo ? 'disabled' : ''}>
+                <button class="btn ${state.appliedPromo ? 'btn-danger' : 'btn-dark'} fw-bold px-3" onclick="${state.appliedPromo ? 'removePromoCode()' : 'applyPromoCode()'}">
+                    ${state.appliedPromo ? (state.lang === 'ar' ? 'إزالة' : 'Remove') : (state.lang === 'ar' ? 'تطبيق' : 'Apply')}
+                </button>
+            </div>
+            <div id="promoMessage"></div>
+            ${discountDisplay}
+        </div>
+    `;
+
     updateCartTotalUI();
 }
 
@@ -642,15 +701,28 @@ function updateCartTotalUI() {
     let fee = DELIVERY_RATES[regionKey] ? DELIVERY_RATES[regionKey].price : 20;
     
     let sub = state.cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-    let total = sub > 0 ? sub + fee : 0;
+    let discountAmount = 0;
+
+    // Apply Promo Code Calculation
+    if (state.appliedPromo) {
+        if (sub < state.appliedPromo.minPurchase) {
+            removePromoCode(); // Auto-remove if they delete items and fall below minimum
+            return;
+        }
+        if (state.appliedPromo.discountType === 'percent') {
+            discountAmount = sub * (state.appliedPromo.discount / 100);
+        } else {
+            discountAmount = state.appliedPromo.discount;
+        }
+        if (discountAmount > sub) discountAmount = sub;
+    }
+
+    let total = sub > 0 ? (sub - discountAmount) + fee : 0;
 
     if(feeDisplay) feeDisplay.innerText = `${t.currency}${fee.toFixed(2)}`;
     if(totalDisplay) totalDisplay.innerText = `${t.currency}${total.toFixed(2)}`;
 }
 
-// -----------------------------------------------------------------------------
-// UPDATED: WhatsApp Send Logic to Empty Basket Reliably on Mobile
-// -----------------------------------------------------------------------------
 function sendToWhatsApp() {
     if (state.cart.length === 0) return;
     const t = I18N[state.lang];
@@ -676,9 +748,30 @@ function sendToWhatsApp() {
         msg += `- Link: ${productLink}\n\n`;
     });
 
-    const total = subtotal + deliveryCost;
+    let discountAmount = 0;
+    if (state.appliedPromo) {
+        discountAmount = state.appliedPromo.discountType === 'percent' 
+            ? subtotal * (state.appliedPromo.discount / 100) 
+            : state.appliedPromo.discount;
+        if (discountAmount > subtotal) discountAmount = subtotal;
+    }
+
+    const total = (subtotal - discountAmount) + deliveryCost;
+    
     msg += `--------------------------\n`;
     msg += `*${t.subtotal}:* ${t.currency}${subtotal}\n`;
+    
+    if (state.appliedPromo) {
+        msg += `*كود الخصم (${state.appliedPromo.code}):* -${t.currency}${discountAmount.toFixed(2)}\n`;
+        
+        // Register usage in database silently
+        fetch('/api/promos/use', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: state.appliedPromo.code })
+        }).catch(e => console.log(e));
+    }
+
     msg += `*${t.delivery} (${regionName}):* ${t.currency}${deliveryCost}\n`;
     msg += `*${t.total}: ${t.currency}${total}*\n`;
     msg += `--------------------------\n\n`;
@@ -686,29 +779,22 @@ function sendToWhatsApp() {
 
     const waUrl = `https://wa.me/${CONFIG.WHATSAPP_PHONE}?text=${encodeURIComponent(msg)}`;
 
-    // 1. Empty the cart state immediately FIRST
     state.cart = [];
-    
-    // 2. Force remove from localStorage just to be 100% sure
+    state.appliedPromo = null; // Clear promo state
     localStorage.removeItem(CONFIG.CART_KEY);
-    
-    // 3. Update the UI to show 0 items
+    localStorage.removeItem(CONFIG.PROMO_KEY);
     saveCart(); 
 
-    // 4. Close the sidebar basket drawer so they return to a clean view
     const cartSidebarEl = document.getElementById('cartSidebar');
     if (cartSidebarEl) {
         const bsOffcanvas = bootstrap.Offcanvas.getInstance(cartSidebarEl);
         if (bsOffcanvas) bsOffcanvas.hide();
     }
 
-    // 5. Open WhatsApp using a tiny delay. 
-    // This gives the mobile browser time to finish deleting the cart before switching apps!
     setTimeout(() => {
         window.open(waUrl, '_blank');
     }, 300);
 }
-// -----------------------------------------------------------------------------
 
 function toggleLanguage() {
     state.lang = state.lang === 'en' ? 'ar' : 'en';
