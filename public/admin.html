@@ -88,6 +88,14 @@
             </div>
             
             <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card admin-card p-4 text-center text-white" style="background: linear-gradient(45deg, #636e72, #b2bec3); cursor: pointer;" onclick="filterByStat('hidden')">
+                    <div class="fs-1 mb-2">👁️‍🗨️</div>
+                    <h2 class="fw-bold m-0" id="statHiddenProducts">0</h2>
+                    <p class="m-0 fw-bold mt-1">المنتجات المخفية</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6 mb-3">
                 <div class="card admin-card p-4 text-center text-white" style="background: linear-gradient(45deg, #d63031, #ff7675); cursor: pointer;" onclick="filterByStat('oos')">
                     <div class="fs-1 mb-2">❌</div>
                     <h2 class="fw-bold m-0" id="statOutOfStock">0</h2>
@@ -383,6 +391,7 @@
             // General metrics
             const total = allProducts.length;
             const oos = allProducts.filter(p => !p.inStock).length;
+            const hidden = allProducts.filter(p => p.isHidden).length; // <-- NEW
             
             // New Warning & Offer metrics
             const onSale = allProducts.filter(p => p.oldPrice && p.oldPrice > p.price).length;
@@ -403,6 +412,7 @@
             // Update the UI (Row 1)
             document.getElementById('statTotalProducts').innerText = total;
             document.getElementById('statOutOfStock').innerText = oos;
+            if(document.getElementById('statHiddenProducts')) document.getElementById('statHiddenProducts').innerText = hidden; // <-- NEW
             document.getElementById('statSaleProducts').innerText = onSale;
             document.getElementById('statLowStock').innerText = lowStock;
             
@@ -430,6 +440,10 @@
                 case 'all': 
                     filtered = allProducts; 
                     titleElement.innerText = "المخزون والمنتجات (الكل)";
+                    break;
+                case 'hidden': // <-- NEW
+                    filtered = allProducts.filter(p => p.isHidden); 
+                    titleElement.innerText = "المنتجات المخفية عن المتجر";
                     break;
                 case 'oos': 
                     filtered = allProducts.filter(p => !p.inStock); 
