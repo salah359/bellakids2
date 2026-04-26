@@ -415,11 +415,7 @@ function inject3DTeddyBear() {
     bearWrapper.className = 'teddy-3d-wrapper';
 
     const messages = [
-        "خذه معي للمنزل! ❤️✨",
-        "سأبدو رائعاً فيه! 😍",
-        "لا تتركني هنا وحيداً! 🥺🧸",
-        "هذا المقاس مناسب جداً! 👌",
-        "العرض سينتهي قريباً! 🔥"
+        
     ];
     const randomMsg = messages[Math.floor(Math.random() * messages.length)];
 
