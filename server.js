@@ -73,6 +73,7 @@ const ProductSchema = new mongoose.Schema({
     isSummer: { type: Boolean, default: false },
     isAutumn: { type: Boolean, default: false },
     isWinter: { type: Boolean, default: false },
+    isHidden: { type: Boolean, default: false }, // NEW FIELD
     createdAt: { type: Date, default: Date.now }
 });
 const Product = mongoose.model('Product', ProductSchema);
@@ -235,10 +236,58 @@ app.post('/api/login', (req, res) => {
 
 app.get('/api/products', async (req, res) => {
     try {
-        const products = await Product.find().sort({ createdAt: -1 });
+        // If ?all=true is in the query (used by admin dashboard), return all products.
+        // Otherwise (for normal shop users), exclude hidden products.
+        const query = req.query.all === 'true' ? {} : { isHidden: { $ne: true } };
+        const products = await Product.find(query).sort({ createdAt: -1 });
         res.json(products);
     } catch (err) {
         res.status(500).json({ error: "Fetch error" });
+    }
+});
+
+app.post('/api/products/bulk', requireAuth, async (req, res) => {
+    try {
+        const { ids, action } = req.body;
+        if (!ids || ids.length === 0) return res.status(400).json({ error: "No IDs provided" });
+        
+        if (action === 'delete') {
+            const products = await Product.find({ _id: { $in: ids } });
+            // Clean up images from Google Cloud Storage
+            for (const product of products) {
+                if (product.images && product.images.length > 0) {
+                    for (const img of product.images) {
+                        if (img.url && img.url.includes('storage.googleapis.com')) {
+                            const urlParts = img.url.split('/');
+                            const fileName = decodeURIComponent(urlParts[urlParts.length - 1]);
+                            try { await bucket.file(fileName).delete(); } catch(e) {}
+                        }
+                    }
+                }
+            }
+            await Product.deleteMany({ _id: { $in: ids } });
+        } else if (action === 'hide') {
+            await Product.updateMany({ _id: { $in: ids } }, { isHidden: true });
+        } else if (action === 'unhide') {
+            await Product.updateMany({ _id: { $in: ids } }, { isHidden: false });
+        } else if (action === 'duplicate') {
+            const products = await Product.find({ _id: { $in: ids } });
+            const newProducts = products.map(p => {
+                const newP = p.toObject();
+                delete newP._id;
+                delete newP.createdAt;
+                newP.name_ar = newP.name_ar + ' (نسخة)';
+                newP.name_en = newP.name_en + ' (Copy)';
+                if (newP.itemId) newP.itemId = newP.itemId + '-COPY';
+                newP.isHidden = true; // Duplicates are hidden by default
+                return newP;
+            });
+            await Product.insertMany(newProducts);
+        }
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -322,6 +371,21 @@ app.put('/api/products/:id', requireAuth, upload.array('images', 10), async (req
     } catch (err) {
         console.error("Cloud Update Error:", err);
         res.status(500).json({ error: "Update error" });
+    }
+});
+
+app.put('/api/products/:id/toggle-hide', requireAuth, async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+        if (product) {
+            product.isHidden = !product.isHidden; 
+            await product.save();
+            res.json(product);
+        } else {
+            res.status(404).json({ error: "Not found" });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
