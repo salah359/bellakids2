@@ -23,6 +23,7 @@ const productSchema = new mongoose.Schema({
         url: { type: String },
         variantId: { type: String, default: '' }
     }],
+    isHidden: { type: Boolean, default: false }, // NEW: Hide product toggle
     createdAt: { type: Date, default: Date.now }
 });
 
