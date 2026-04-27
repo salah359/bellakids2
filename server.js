@@ -36,6 +36,22 @@ app.use(cors());
 app.use(express.json()); 
 app.use(cookieParser()); 
 app.use(express.urlencoded({ extended: true })); 
+
+// 🚨 ADDED THIS BLOCK TO PROTECT admin.html FROM DIRECT ACCESS
+app.use((req, res, next) => {
+    if (req.path === '/admin.html') {
+        const token = req.cookies?.adminToken;
+        if (!token) return res.redirect('/login');
+
+        jwt.verify(token, JWT_SECRET, (err) => {
+            if (err) return res.redirect('/login');
+            next(); // Token is valid, allow them to view the page
+        });
+    } else {
+        next();
+    }
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -199,13 +215,39 @@ app.delete('/api/slides/:id', requireAuth, async (req, res) => {
 app.post('/api/settings/active-season', requireAuth, async (req, res) => {
     try {
         const { seasonPage } = req.body;
+        
+        // 1. Update the active season button link
         await Settings.findOneAndUpdate(
             { key: 'active_season' },
             { value: seasonPage },
             { upsert: true, new: true }
         );
+
+        // 2. Determine which database key matches the selected season
+        let seasonKey = '';
+        if (seasonPage === '/spring') seasonKey = 'isSpring';
+        if (seasonPage === '/summer') seasonKey = 'isSummer';
+        if (seasonPage === '/autumn') seasonKey = 'isAutumn';
+        if (seasonPage === '/winter') seasonKey = 'isWinter';
+
+        // 3. Automatically hide/unhide products across the store
+        if (seasonKey) {
+            // Hide products that do NOT belong to the chosen season
+            await Product.updateMany(
+                { [seasonKey]: { $ne: true } }, 
+                { $set: { isHidden: true } }
+            );
+            
+            // Unhide products that DO belong to the chosen season
+            await Product.updateMany(
+                { [seasonKey]: true }, 
+                { $set: { isHidden: false } }
+            );
+        }
+
         res.json({ success: true, active_season: seasonPage });
     } catch (err) {
+        console.error("Error updating season:", err);
         res.status(500).json({ error: "Failed to update season" });
     }
 });
